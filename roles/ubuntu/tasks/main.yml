@@ -52,3 +52,6 @@
     reboot_timeout: 1200
   when: file_reboot_required.stat.exists
 
+- name: unpause worker
+  delegate_to: localhost
+  command: ocluster-admin --connect /run/secrets/admin.cap unpause --auto-create {{builder_pool}} {{inventory_hostname}}
