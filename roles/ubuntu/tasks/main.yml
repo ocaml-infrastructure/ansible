@@ -1,9 +1,4 @@
 
-- name: query worker
-  delegate_to: localhost
-  command: ocluster-admin --connect /run/secrets/admin.cap show --terse {{builder_pool}} {{inventory_hostname}}
-  register: worker_state
-
 - name: update packages
   apt:
     update_cache: yes
@@ -56,9 +51,4 @@
   ansible.builtin.reboot:
     reboot_timeout: 1200
   when: file_reboot_required.stat.exists
-
-- name: unpause worker (previous state was {{ worker_state.stdout }})
-  delegate_to: localhost
-  command: ocluster-admin --connect /run/secrets/admin.cap unpause --auto-create {{builder_pool}} {{inventory_hostname}}
-  when: worker_state.stdout != "Paused"
 
