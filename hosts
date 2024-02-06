@@ -1,6 +1,7 @@
-x86-bm-c4.sw.ocaml.org
-x86-bm-c5.sw.ocaml.org
-x86-bm-c6.sw.ocaml.org
-x86-bm-c7.sw.ocaml.org
-x86-bm-c8.sw.ocaml.org
-x86-bm-c9.sw.ocaml.org
+# Dell PowerEdge R720: 16C 256G
+x86-bm-c4.sw.ocaml.org builder_pool=linux-x86_64 capacity=13 country=fr
+x86-bm-c5.sw.ocaml.org builder_pool=linux-x86_64 capacity=12 country=fr
+x86-bm-c6.sw.ocaml.org builder_pool=linux-x86_64 capacity=11 country=fr
+x86-bm-c7.sw.ocaml.org builder_pool=linux-x86_64 capacity=10 country=fr
+x86-bm-c8.sw.ocaml.org builder_pool=linux-x86_64 capacity=9 country=fr
+x86-bm-c9.sw.ocaml.org builder_pool=linux-x86_64 capacity=8 country=fr

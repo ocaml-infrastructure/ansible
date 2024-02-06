@@ -1,0 +1,64 @@
+
+- name: query worker
+  delegate_to: localhost
+  command: ocluster-admin --connect /run/secrets/admin.cap show --terse {{builder_pool}} {{inventory_hostname}}
+  register: worker_state
+
+- name: update packages
+  apt:
+    update_cache: yes
+    upgrade: dist
+    autoremove: yes
+  register: output
+
+- name: install upgrader
+  apt:
+    name: ubuntu-release-upgrader-core
+    state: present
+
+- name: check if reboot needed
+  stat: path=/var/run/reboot-required
+  register: file_reboot_required
+
+- name: pause worker
+  delegate_to: localhost
+  command: ocluster-admin --connect /run/secrets/admin.cap pause --auto-create --wait {{builder_pool}} {{inventory_hostname}}
+  when: file_reboot_required.stat.exists
+
+- name: pre-upgrade reboot
+  ansible.builtin.reboot:
+    reboot_timeout: 1200
+  when: file_reboot_required.stat.exists
+
+- name: configure for LTS releases
+  copy:
+    dest: /etc/update-manager/release-upgrades
+    content: |
+      [DEFAULT]
+      Prompt=lts
+
+- name: upgrade to Ubuntu 22.04 unless processor == POWER8
+  command: do-release-upgrade -f DistUpgradeViewNonInteractive
+  when:
+    - ansible_facts["distribution_version"] < "22.04"
+    - not ansible_processor | select("match", "POWER8")
+
+- name: check if reboot needed
+  stat: path=/var/run/reboot-required
+  register: file_reboot_required
+
+- name: pause worker
+  delegate_to: localhost
+  command: ocluster-admin --connect /run/secrets/admin.cap pause --auto-create --wait {{builder_pool}} {{inventory_hostname}}
+  when: file_reboot_required.stat.exists
+
+- name: reboot to 22.04
+  ansible.builtin.reboot:
+    reboot_timeout: 1200
+  when: file_reboot_required.stat.exists
+
+- name: unpause worker (previous state was {{ worker_state.stdout }})
+  delegate_to: localhost
+  command: ocluster-admin --connect /run/secrets/admin.cap unpause --auto-create {{builder_pool}} {{inventory_hostname}}
+  when: worker_state.stdout != "Paused"
+

@@ -1,13 +1,14 @@
 ((playbooks (
   (
    (name update-something-else.yml)
+   (deps (roles/apt/tasks/main.yml))
   )
   (
    (name update.yml)
-   (validity 7)
   )
   (
    (name playbook.yml)
-   (deps (roles/apt/tasks/main.yml))
+   (validity 7)
+   (deps (roles/ubuntu/tasks/main.yml))
   )
 )))
