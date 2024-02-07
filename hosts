@@ -5,3 +5,10 @@ x86-bm-c6.sw.ocaml.org builder_pool=linux-x86_64 capacity=11 country=fr
 x86-bm-c7.sw.ocaml.org builder_pool=linux-x86_64 capacity=10 country=fr
 x86-bm-c8.sw.ocaml.org builder_pool=linux-x86_64 capacity=9 country=fr
 x86-bm-c9.sw.ocaml.org builder_pool=linux-x86_64 capacity=8 country=fr
+# SiFive U74-MC
+leafcutter.caelum.ci.dev builder_pool=linux-riscv64 capacity=1
+carpenter.caelum.ci.dev builder_pool=linux-riscv64 capacity=1
+# KVM RISCV workers
+riscv-worker-01.caelum.ci.dev builder_pool=linux-riscv64 capacity=1
+riscv-worker-02.caelum.ci.dev builder_pool=linux-riscv64 capacity=1
+riscv-worker-03.caelum.ci.dev builder_pool=linux-riscv64 capacity=1

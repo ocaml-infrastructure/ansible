@@ -7,7 +7,7 @@
    (name update.yml)
   )
   (
-   (name playbook.yml)
+   (name ubuntu-update-workers.yml)
    (validity 7)
    (deps (roles/ubuntu/tasks/main.yml))
   )
