@@ -54,7 +54,7 @@
             services:
               deployer:
                 image: ocurrent/ci.ocamllabs.io-deployer:live-ocaml-org
-                command: -v --github-app-id 173198 --github-private-key-file /run/secrets/deployer-github-key --github-account-allowlist ocurrent,ocaml --slack /run/secrets/deployer-slack --confirm above-average --github-oauth /run/secrets/deployer-github-oauth --github-webhook-secret-file /run/secrets/deployer-webhook-secret --submission-service /run/secrets/deployer-submission --staging-password-file /run/secrets/ocurrentbuilder-password --flavour ocaml
+                command: -v --github-app-id 173198 --github-private-key-file /run/secrets/deployer-github-key --github-account-allowlist ocurrent,ocaml --slack /run/secrets/deployer-slack --confirm above-average --github-oauth /run/secrets/deployer-github-oauth --github-webhook-secret-file /run/secrets/deployer-webhook-secret --submission-service /run/secrets/deployer-submission-cap --staging-password-file /run/secrets/ocurrentbuilder-password --flavour ocaml
                 volumes:
                   - 'deployer-data:/var/lib/ocurrent'
                   - '/var/run/docker.sock:/var/run/docker.sock'
@@ -66,7 +66,7 @@
                     mode: 0400
                   - deployer-slack
                   - deployer-webhook-secret # DONE
-                  - deployer-submission # DONE Copied from ci3
+                  - deployer-submission-cap # DONE Copied from ci3
                   - ocurrent-hub # DONE Copied from ci3 - Pushing final images to Docker Hub
                 sysctls:
                   - 'net.ipv4.tcp_keepalive_time=60'
@@ -98,7 +98,7 @@
                 external: true
               ocurrent-hub:             # Pushing final images to Docker Hub
                 external: true
-              deployer-submission:  # Cluster submission capability
+              deployer-submission-cap:  # Cluster submission capability
                 external: true
   handlers:
     - name: restart caddy
