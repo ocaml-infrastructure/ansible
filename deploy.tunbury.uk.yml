@@ -1,6 +1,6 @@
 ---
 
-- hosts: all
+- hosts: deploy.tunbury.uk
   name: Set up Docker
   roles:
     - docker
