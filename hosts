@@ -1,3 +1,7 @@
+deploy.ci.ocaml.org
+deploy.tunbury.uk
+staging.docs.ci.ocamllabs.io
+
 # Dell PowerEdge R720: 16C 256G
 x86-bm-c4.sw.ocaml.org builder_pool=linux-x86_64 capacity=13 country=fr
 x86-bm-c5.sw.ocaml.org builder_pool=linux-x86_64 capacity=12 country=fr
@@ -12,3 +16,6 @@ carpenter.caelum.ci.dev builder_pool=linux-riscv64 capacity=1
 riscv-worker-01.caelum.ci.dev builder_pool=linux-riscv64 capacity=1
 riscv-worker-02.caelum.ci.dev builder_pool=linux-riscv64 capacity=1
 riscv-worker-03.caelum.ci.dev builder_pool=linux-riscv64 capacity=1
+# IBM S390
+s390x-worker-01.marist.ci.dev builder_pool=linux-s390x capacity=4 store_device=/dev/dasdb1
+s390x-worker-02.marist.ci.dev builder_pool=linux-s390x capacity=2 store_device=/dev/dasdb1

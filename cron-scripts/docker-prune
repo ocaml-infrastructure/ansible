@@ -1,0 +1,5 @@
+#!/bin/bash
+set -eux
+
+systemd-cat -t "docker-prune" docker system prune -af
+

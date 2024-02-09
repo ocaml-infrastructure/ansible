@@ -1,0 +1,3 @@
+deploy.tunbury.uk {
+	reverse_proxy deployer:8080
+}

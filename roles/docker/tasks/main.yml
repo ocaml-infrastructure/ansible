@@ -1,0 +1,55 @@
+- name: make /etc/docker
+  file:
+    path: /etc/docker
+    state: directory
+
+- name: enable experimental features
+  copy:
+    content: |
+      {
+        "experimental": true
+      }
+    dest: /etc/docker/daemon.json
+  when: docker_data_root is not defined
+
+- name: enable experimental features with custom data_root
+  copy:
+    content: |
+      {
+        "experimental": true,
+        "data-root": "{{ docker_data_root }}"
+      }
+    dest: /etc/docker/daemon.json
+  when: docker_data_root is defined
+
+- name: remove docker-ce
+  apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+    autoremove: true
+    purge: true
+    state: absent
+
+- name: install APT packages
+  apt:
+    name:
+      - docker.io=20.10.21-0ubuntu1~22.04.3
+      - python3-distutils
+      - python3-docker
+      - python3-jsondiff
+      # Workaround for https://github.com/docker/docker-credential-helpers/issues/105:
+      - pass
+      - gnupg2
+    install_recommends: no
+    cache_valid_time: 3600
+
+- name: hold Docker version
+  shell: apt-mark hold docker.io
+
+- name: enable docker
+  service:
+    name: docker
+    enabled: yes
+    state: started

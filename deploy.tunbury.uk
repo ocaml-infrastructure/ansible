@@ -1,0 +1,106 @@
+---
+
+- hosts: all
+  name: Set up Docker
+  roles:
+    - docker
+    - deployer-key
+
+- hosts: deploy.tunbury.uk
+  name: Set up SwarmKit
+  tasks:
+    - docker_swarm:
+        listen_addr: "127.0.0.1:2377"
+        advertise_addr: "127.0.0.1:2377"
+
+- hosts: deploy.tunbury.uk
+  name: Install ocurrent-deployer
+  tasks:
+    - name: copy Docker secrets
+      docker_secret:
+        name: "{{ item }}"
+        data: "{{ lookup('vars', item) | b64encode }}"
+        data_is_b64: true
+      loop:
+        - deployer-github-key
+        - deployer-github-oauth
+        - deployer-slack
+        - deployer-ssh-key
+        - deployer-submission-cap
+        - deployer-webhook-secret
+        - ocurrentbuilder-password
+        - ocurrent-hub
+    - name: create caddy directory
+      file:
+        path: /etc/caddy
+        state: directory
+    - name: configure caddy
+      copy:
+        src: caddy/deploy.tunbury.uk
+        dest: /etc/caddy/Caddyfile
+      notify:
+        - restart caddy
+    - name: install docker-prune script
+      copy:
+        src: cron-scripts/docker-prune
+        dest: /etc/cron.hourly/docker-prune
+        mode: u=rwx,g=rx,o=rx
+    - name: set up deployer stack
+      docker_stack:
+        name: infra
+        prune: yes
+        compose:
+          - version: "3.7"
+            services:
+              deployer:
+                image: ocurrent/ci.ocamllabs.io-deployer:live-ocaml-org
+                command: -v --github-app-id 173198 --github-private-key-file /run/secrets/deployer-github-key --github-account-allowlist ocurrent,ocaml --slack /run/secrets/deployer-slack --confirm above-average --github-oauth /run/secrets/deployer-github-oauth --github-webhook-secret-file /run/secrets/deployer-webhook-secret --submission-service /run/secrets/deployer-submission --staging-password-file /run/secrets/ocurrentbuilder-password --flavour ocaml
+                volumes:
+                  - 'deployer-data:/var/lib/ocurrent'
+                  - '/var/run/docker.sock:/var/run/docker.sock'
+                secrets:
+                  - ocurrentbuilder-password # DONE Copied from ci3
+                  - deployer-github-oauth   # DONE
+                  - deployer-github-key # DONE
+                  - source: 'deployer-ssh-key'
+                    mode: 0400
+                  - deployer-slack
+                  - deployer-webhook-secret # DONE
+                  - deployer-submission # DONE Copied from ci3
+                  - ocurrent-hub # DONE Copied from ci3 - Pushing final images to Docker Hub
+                sysctls:
+                  - 'net.ipv4.tcp_keepalive_time=60'
+              caddy:
+                image: caddy
+                ports:
+                  - 80:80
+                  - 443:443
+                volumes:
+                  - /etc/caddy:/etc/caddy:ro
+                  - caddy_data:/data
+                  - caddy_config:/config
+            volumes:
+              deployer-data:
+              caddy_data:
+              caddy_config:
+            secrets:
+              ocurrentbuilder-password: # Used by workers to push to staging area on Docker Hub
+                external: true
+              deployer-github-oauth:    # Control access to the web UI
+                external: true
+              deployer-github-key:  # To authenticate to GitHub as an app
+                external: true
+              deployer-ssh-key:         # For deploying over ssh to remote machines
+                external: true
+              deployer-slack:           # Posting status updates to Slack
+                external: true
+              deployer-webhook-secret:  # Validating GitHub webhooks
+                external: true
+              ocurrent-hub:             # Pushing final images to Docker Hub
+                external: true
+              deployer-submission:  # Cluster submission capability
+                external: true
+  handlers:
+    - name: restart caddy
+      shell:
+        cmd: PS=$(docker ps --filter=name=infra_caddy -q) && if [ -n "$PS" ] ; then docker exec -w /etc/caddy $PS caddy reload ; fi
