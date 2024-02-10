@@ -1,19 +1,19 @@
 ---
 
-- hosts: deploy.tunbury.uk
+- hosts: deploy.ci.ocaml.org
   name: Set up Docker
   roles:
     - docker
     - deployer-key
 
-- hosts: deploy.tunbury.uk
+- hosts: deploy.ci.ocaml.org
   name: Set up SwarmKit
   tasks:
     - docker_swarm:
         listen_addr: "127.0.0.1:2377"
         advertise_addr: "127.0.0.1:2377"
 
-- hosts: deploy.tunbury.uk
+- hosts: deploy.ci.ocaml.org
   name: Install ocurrent-deployer
   tasks:
     - name: copy Docker secrets
@@ -36,7 +36,7 @@
         state: directory
     - name: configure caddy
       copy:
-        src: caddy/deploy.tunbury.uk
+        src: caddy/deploy.ci.ocaml.org
         dest: /etc/caddy/Caddyfile
       notify:
         - restart caddy
