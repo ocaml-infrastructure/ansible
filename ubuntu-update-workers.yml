@@ -1,6 +1,6 @@
 ---
 
-- hosts: all
+- hosts: ubuntubuilders
   name: Install Ubunutu updates
   serial: 1
   gather_facts: true

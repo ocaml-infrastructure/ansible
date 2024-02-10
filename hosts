@@ -1,7 +1,8 @@
+[servers]
 deploy.ci.ocaml.org
-deploy.tunbury.uk
 staging.docs.ci.ocamllabs.io
 
+[ubuntubuilders]
 # Dell PowerEdge R720: 16C 256G
 x86-bm-c4.sw.ocaml.org builder_pool=linux-x86_64 capacity=13 country=fr
 x86-bm-c5.sw.ocaml.org builder_pool=linux-x86_64 capacity=12 country=fr

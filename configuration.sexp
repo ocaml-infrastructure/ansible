@@ -12,8 +12,8 @@
    (deps (roles/ubuntu/tasks/main.yml))
   )
   (
-   (name deploy.tunbury.uk.yml)
+   (name deploy.ci.ocaml.org.yml)
    (vars /run/secrets/deploy.ci.ocaml.org.yml)
-   (deps (caddy/deploy.tunbury.uk cron-scripts/docker-prune roles/docker/tasks/main.yml roles/deployer-key/tasks/main.yml roles/deployer-key/files/id_rsa.pub))
+   (deps (caddy/deploy.ci.ocaml.org cron-scripts/docker-prune roles/docker/tasks/main.yml roles/deployer-key/tasks/main.yml roles/deployer-key/files/id_rsa.pub))
   )
 )))
