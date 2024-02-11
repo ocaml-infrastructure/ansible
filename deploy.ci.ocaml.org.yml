@@ -3,7 +3,7 @@
 - hosts: deploy.ci.ocaml.org
   name: Set up Docker
   roles:
-    - docker
+    #    - docker
     - deployer-key
 
 - hosts: deploy.ci.ocaml.org
