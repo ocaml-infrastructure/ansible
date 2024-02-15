@@ -1,6 +1,7 @@
 [servers]
 deploy.ci.ocaml.org
 staging.docs.ci.ocamllabs.io
+registry.ci.dev
 
 [ubuntubuilders]
 # Dell PowerEdge R720: 16C 256G
