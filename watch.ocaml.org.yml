@@ -48,7 +48,7 @@
         cmd: docker run --rm -v nginx-conf:/etc/nginx/conf.d bash wget https://raw.githubusercontent.com/Chocobozzz/PeerTube/master/support/nginx/peertube -O /etc/nginx/conf.d/peertube.template
     - name: Copy environment
       copy:
-        src: /run/secrets/watch.ocaml.org.env
+        content: "{{ watch_env }}"
         dest: /root/.env
         mode: 0600
     - name: install docker-prune script

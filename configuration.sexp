@@ -22,7 +22,7 @@
   )
   (
    (name watch.ocaml.org.yml)
-   (vars /run/secrets/watch.ocaml.org.env)
+   (vars /run/secrets/watch.ocaml.org.yml)
    (deps (cron-scripts/docker-prune))
   )
 )))
