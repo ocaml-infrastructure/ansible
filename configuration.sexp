@@ -20,4 +20,9 @@
    (name registry.ci.dev.yml)
    (vars /run/secrets/registry.ci.dev.yml)
   )
+  (
+   (name watch.ocaml.org)
+   (vars /run/secrets/watch.ocaml.org.env)
+   (deps (cron-scripts/docker-prune))
+  )
 )))
