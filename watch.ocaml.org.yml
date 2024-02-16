@@ -20,7 +20,7 @@
       state: present
   - name: Copy tarsnap key
     copy:
-      src: secrets/tarsnap.key
+      content: "{{ tarsnap_key }}"
       dest: /root/tarsnap.key
       mode: 0600
 
