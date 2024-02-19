@@ -26,7 +26,7 @@
     - name: ensure volume folder exists
       shell: docker volume create registry_auth
     - name: Create password file
-      shell: docker run --entrypoint htpasswd httpd:2 -Bbn ocurrent {{ lookup('vars', 'ocurrent-hub') }} > /var/lib/docker/volumes/registry_auth/_data/htpasswd
+      shell: docker run --entrypoint htpasswd httpd:2 -Bbn ocurrent {{ lookup('vars', 'ocurrent') }} > /var/lib/docker/volumes/registry_auth/_data/htpasswd
       args:
         creates: /var/lib/docker/volumes/registry_auth/_data/htpasswd
     - name: set up registry infrastructure stack
