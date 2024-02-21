@@ -12,8 +12,16 @@
         content: |
           #!/bin/bash
           set -eux
-          systemd-cat -t "docker-prune" docker builder prune -f
+          systemd-cat -t "docker-buider-prune" docker builder prune -f
         dest: /etc/cron.hourly/docker-builder-prune
+        mode: '0755'
+    - name: Prune Docker
+      copy:
+        content: |
+          #!/bin/bash
+          set -eux
+          systemd-cat -t "docker-system-prune" docker system prune -af
+        dest: /etc/cron.daily/docker-builder-prune
         mode: '0755'
     - name: Purge old images from docker registry
       copy:
