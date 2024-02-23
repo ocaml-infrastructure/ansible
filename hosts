@@ -3,6 +3,7 @@ deploy.ci.ocaml.org
 staging.docs.ci.ocamllabs.io
 registry.ci.dev
 watch.ocaml.org
+v3b.ocaml.org
 v3c.ocaml.org
 
 [ubuntubuilders]

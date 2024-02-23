@@ -1,0 +1,68 @@
+---
+
+- hosts: v3b.ocaml.org
+  name: Set up Docker
+  roles:
+    - deployer-key
+
+- hosts: v3b.ocaml.org
+  name: Set up SwarmKit
+  tasks:
+    - docker_swarm:
+        listen_addr: "127.0.0.1:2377"
+        advertise_addr: "127.0.0.1:2377"
+
+- hosts: v3b.ocaml.org
+  name: Deploy OCaml.org website
+  tasks:
+    - name: create caddy directory
+      file:
+        path: /etc/caddy
+        state: directory
+    - name: configure caddy
+      copy:
+        src: caddy/www.ocaml.org
+        dest: /etc/caddy/Caddyfile
+      notify:
+        - restart caddy
+    - name: install docker-prune script
+      copy:
+        src: cron-scripts/docker-prune
+        dest: /etc/cron.hourly/docker-prune
+        mode: u=rwx,g=rx,o=rx
+    - name: set up infrastructure stack
+      docker_stack:
+        name: infra
+        prune: yes
+        compose:
+          - version: "3.7"
+            services:
+              caddy:
+                deploy:
+                  mode: global
+                ports:
+                  - target: 80
+                    published: 80
+                    protocol: tcp
+                    mode: host
+                  - target: 443
+                    published: 443
+                    protocol: tcp
+                    mode: host
+                image: caddy
+                volumes:
+                  - /etc/caddy:/etc/caddy:ro
+                  - caddy_data:/data
+                  - caddy_config:/config
+              www:
+                image: ocurrent/v3.ocaml.org-server:live
+                sysctls:
+                  - 'net.ipv4.tcp_keepalive_time=60'
+            volumes:
+              caddy_data:
+              caddy_config:
+  handlers:
+    - name: restart caddy
+      shell:
+        cmd: PS=$(docker ps --filter=name=infra_caddy -q) && if [ -n "$PS" ] ; then docker exec -w /etc/caddy $PS caddy reload ; fi
+
