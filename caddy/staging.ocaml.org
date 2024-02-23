@@ -1,0 +1,3 @@
+v3c.ocaml.org, staging.ocaml.org {
+	reverse_proxy www:8080
+}
