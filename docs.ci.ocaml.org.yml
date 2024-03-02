@@ -1,0 +1,120 @@
+
+- hosts: docs.ci.ocaml.org
+  name: Configure docs.ci controller host
+  tasks:
+    - docker_swarm:
+        listen_addr: "127.0.0.1:2377"
+        advertise_addr: "127.0.0.1:2377"
+    - name: create caddy directory
+      file:
+        path: /etc/caddy
+        state: directory
+    - name: configure Caddy
+      template:
+        dest: /etc/caddy/Caddyfile
+        src: caddy/docs.ci.ocaml.org
+      notify:
+        - restart caddy
+    - name: copy Docker secrets
+      docker_secret:
+        name: "{{ item }}"
+        data: "{{ lookup('vars', item) | b64encode }}"
+        data_is_b64: true
+      loop:
+        - docs-ci-submission-cap
+        - docs-ci-github-oauth
+    - name: set up docs.ocaml.org stack
+      docker_stack:
+        name: infra
+        prune: yes
+        compose:
+          - version: "3.8"
+            secrets:
+              docs-ci-submission-cap:
+                external: true
+              docs-ci-github-oauth:
+                external: true
+            services:
+              caddy:
+                image: caddy
+                ports:
+                  - 80:80
+                  - 443:443
+                volumes:
+                  - /etc/caddy:/etc/caddy:ro
+                  - caddy_data:/data
+                  - caddy_config:/config
+              init:
+                image: ocurrent/docs-ci-init:live
+                environment:
+                  - KEYFILE=/ssh/id_ed25519
+                  - KEYTYPE=ed25519
+                volumes:
+                  - 'ssh-credentials:/ssh/'
+              storage-server:
+                image: ocurrent/docs-ci-storage-server:live
+                environment:
+                  - PUBLIC_KEY_FILE=/ssh/id_ed25519.pub
+                ports:
+                  - "2222:22"
+                volumes:
+                  - 'ssh-credentials:/root/.ssh/'
+                  - 'docs-data:/data'
+              html-data-website:
+                restart: on-failure
+                image: nginx
+                command: >
+                  bash -c "rm -rf /usr/share/nginx/html && mkdir /usr/share/nginx/html
+                  && ln -s /data/html-live/html-raw /usr/share/nginx/html/live
+                  && ln -s /data/html-current/html-raw /usr/share/nginx/html/current
+                  && nginx -g 'daemon off;'"
+                volumes:
+                  - 'docs-data:/data/'
+              docs-ci:
+                image: ocurrent/docs-ci:live
+                secrets:
+                  - 'docs-ci-submission-cap'
+                  - 'docs-ci-github-oauth'
+                depends_on:
+                  - "storage-server"
+                command:
+                  - --confirm=above-average
+                  - --ocluster-submission=/run/secrets/docs-ci-submission-cap
+                  - --github-oauth=/run/secrets/docs-ci-github-oauth
+                  - --ssh-host=docs.ci.ocaml.org
+                  - --ssh-port=2222
+                  - --ssh-user=root
+                  - --ssh-privkey=/ssh/id_ed25519
+                  - --ssh-pubkey=/ssh/id_ed25519.pub
+                  - --ssh-folder=/data
+                  - --jobs=18
+                    #                  - --filter=uri
+                  - --limit=1000
+                  - --capnp-listen-address=tcp:0.0.0.0:9000
+                  - --capnp-public-address=tcp:docs.ci.ocaml.org:8102
+                  - --voodoo-branch=main
+                  - --migration-path=/migrations
+                init: true
+                restart: on-failure         # (wait for the scheduler to write the submission cap)
+                ports:
+                - 8080:8080 # HTTP UI
+                - 8102:9000 # Capnp
+                volumes:
+                  - 'docs-ci-data:/var/lib/ocurrent'
+                  - "capnp-secrets:/capnp-secrets"
+                  - 'ssh-credentials:/ssh/'
+                environment:
+                  - OCAMLRUNPARAM=b
+            volumes:
+              docs-ci-data:
+              capnp-secrets:
+              docs-data:
+              ssh-credentials:
+              caddy_data:
+                external: true
+              caddy_config:
+  handlers:
+    - name: restart caddy
+      shell:
+        cmd: PS=$(docker ps --filter=label=com.docker.swarm.service.name=infra_caddy -q) && if [ -n "$PS" ] ; then docker exec -w /etc/caddy $PS caddy reload ; fi
+

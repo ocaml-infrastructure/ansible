@@ -17,6 +17,11 @@
    (deps (caddy/deploy.ci.ocaml.org cron-scripts/docker-prune roles/docker/tasks/main.yml roles/deployer-key/tasks/main.yml roles/deployer-key/files/id_rsa.pub))
   )
   (
+   (name docs.ci.ocaml.org.yml)
+   (vars /run/secrets/docs.ci.ocaml.org.yml)
+   (deps (caddy/docs.ci.ocaml.org roles/deployer-key/tasks/main.yml roles/deployer-key/files/id_rsa.pub))
+  )
+  (
    (name staging.ocaml.org.yml)
    (deps (caddy/staging.ocaml.org cron-scripts/docker-prune roles/deployer-key/tasks/main.yml roles/deployer-key/files/id_rsa.pub))
   )

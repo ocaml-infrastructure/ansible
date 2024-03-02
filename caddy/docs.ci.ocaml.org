@@ -1,0 +1,14 @@
+docs.ci.ocaml.org {
+	handle /host/metrics {
+		basicauth bcrypt {
+			prometheus {{ prometheus_password }}
+		}
+		uri strip_prefix /host
+		reverse_proxy 172.18.0.1:9100
+	}
+	reverse_proxy docs-ci:8080
+}
+
+docs-data.ocaml.org {
+	reverse_proxy html-data-website:80
+}
