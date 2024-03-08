@@ -44,6 +44,8 @@
                   - /etc/caddy:/etc/caddy:ro
                   - caddy_data:/data
                   - caddy_config:/config
+                extra_hosts:
+                  - "docs.ci.ocaml.org:147.75.198.157"
               init:
                 image: ocurrent/docs-ci-init:live
                 environment:
@@ -51,6 +53,8 @@
                   - KEYTYPE=ed25519
                 volumes:
                   - 'ssh-credentials:/ssh/'
+                extra_hosts:
+                  - "docs.ci.ocaml.org:147.75.198.157"
               storage-server:
                 image: ocurrent/docs-ci-storage-server:live
                 environment:
@@ -70,6 +74,8 @@
                   && nginx -g 'daemon off;'"
                 volumes:
                   - 'docs-data:/data/'
+                extra_hosts:
+                  - "docs.ci.ocaml.org:147.75.198.157"
               docs-ci:
                 image: ocurrent/docs-ci:live
                 secrets:
@@ -81,7 +87,7 @@
                   - --confirm=above-average
                   - --ocluster-submission=/run/secrets/docs-ci-submission-cap
                   - --github-oauth=/run/secrets/docs-ci-github-oauth
-                  - --ssh-host=docs.ci.ocaml.org
+                  - --ssh-host=c2-1.equinix.ci.dev
                   - --ssh-port=2222
                   - --ssh-user=root
                   - --ssh-privkey=/ssh/id_ed25519
@@ -105,6 +111,8 @@
                   - 'ssh-credentials:/ssh/'
                 environment:
                   - OCAMLRUNPARAM=b
+                extra_hosts:
+                  - "docs.ci.ocaml.org:147.75.198.157"
             volumes:
               docs-ci-data:
               capnp-secrets:
