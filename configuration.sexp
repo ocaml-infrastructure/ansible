@@ -43,4 +43,9 @@
    (vars /run/secrets/deploy.ci.dev.yml)
    (deps (caddy/deploy.ci.dev cron-scripts/docker-prune roles/docker/tasks/main.yml roles/deployer-key/tasks/main.yml roles/deployer-key/files/id_rsa.pub))
   )
+  (
+   (name scheduler.ci.dev.yml)
+   (vars /run/secrets/scheduler.ci.dev.yml)
+   (deps (caddy/scheduler.ci.dev cron-scripts/clear-log cron-scripts/docker-prune roles/docker/tasks/main.yml roles/deployer-key/tasks/main.yml roles/deployer-key/files/id_rsa.pub))
+  )
 )))

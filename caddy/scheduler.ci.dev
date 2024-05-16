@@ -1,0 +1,10 @@
+scheduler.ci.dev {
+	basicauth bcrypt {
+		prometheus {{ prometheus_password }}
+	}
+	reverse_proxy prometheus:9090
+}
+
+status.ci3.ocamllabs.io {
+	redir https://status.ocaml.ci.dev{uri} permanent
+}

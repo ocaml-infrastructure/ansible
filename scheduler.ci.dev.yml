@@ -1,0 +1,96 @@
+---
+
+- hosts: scheduler.ci.dev
+  name: Set up Docker
+  roles:
+    #    - docker
+    - deployer-key
+
+- hosts: scheduler.ci.dev
+  name: Configure controller host
+  tasks:
+    - name: create caddy directories
+      file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - /etc/caddy
+        - /etc/caddy/caddy.d
+    - name: caddy machine wide configuration
+      copy:
+        dest: /etc/caddy/Caddyfile
+        content: |
+          import /etc/caddy/caddy.d/*
+    - name: configure caddy for scheduler.ci.dev
+      template:
+        src: caddy/scheduler.ci.dev
+        dest: /etc/caddy/caddy.d/scheduler.ci.dev
+      notify:
+        - restart caddy
+    - name: configure Prometheus monitor configuration
+      template:
+        src: prometheus/prometheus-scheduler.yml
+        dest: /etc/prometheus/prometheus.yml
+      notify:
+        - restart prometheus
+    - name: install clear log script
+      template:
+        src: cron-scripts/clear-log
+        dest: /etc/cron.hourly/clear-log
+        mode: u=rwx,g=rx,o=rx
+      vars:
+        volumes:
+          - base-images_data
+    - name: install docker-prune script
+      copy:
+        src: cron-scripts/docker-prune
+        dest: /etc/cron.weekly/docker-prune
+        mode: u=rwx,g=rx,o=rx
+    - name: set up infrastructure stack
+      docker_stack:
+        name: infra
+        prune: yes
+        compose:
+          - version: "3.7"
+            services:
+              scheduler:
+                image: ocurrent/ocluster-scheduler:live
+                command: --secrets-dir /capnp-secrets --capnp-secret-key-file /capnp-secrets/key.pem --capnp-listen-address tcp:0.0.0.0:9000 --capnp-public-address=tcp:scheduler.ci.dev:8103 --pools=linux-x86_64,linux-arm64,linux-ppc64,linux-riscv64,linux-s390x,freebsd-x86_64,macos-x86_64,macos-arm64,windows-1809-x86_64,windows-x86_64,solver,solver-test,test --listen-prometheus=9090 --state-dir=/var/lib/ocluster-scheduler -v
+                init: true
+                ports:
+                  - '8103:9000'
+                volumes:
+                  - 'scheduler-data:/var/lib/ocluster-scheduler'
+                  - 'capnp-secrets:/capnp-secrets'
+                sysctls:
+                  - 'net.ipv4.tcp_keepalive_time=60'
+              caddy:
+                image: caddy
+                ports:
+                  - 80:80
+                  - 443:443
+                volumes:
+                  - /etc/caddy:/etc/caddy:ro
+                  - caddy_data:/data
+                  - caddy_config:/config
+              prometheus:
+                image: prom/prometheus
+                command: --storage.tsdb.retention.time=4w --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus --web.console.libraries=/usr/share/prometheus/console_libraries --web.console.templates=/usr/share/prometheus/consoles
+                volumes:
+                  - "prometheus-data:/prometheus"
+                  - "/etc/prometheus:/etc/prometheus:ro"
+            volumes:
+              prometheus-data:
+              scheduler-data:
+              capnp-secrets:
+              caddy_data:
+                external: true
+              caddy_config:
+  handlers:
+    - name: restart prometheus
+      shell:
+        cmd: PS=$(docker ps --filter=label=com.docker.swarm.service.name=infra_prometheus -q) && if [ -n "$PS" ] ; then docker exec $PS pkill -HUP prometheus ; fi
+    - name: restart caddy
+      shell:
+        cmd: PS=$(docker ps --filter=label=com.docker.swarm.service.name=infra_caddy -q) && if [ -n "$PS" ] ; then docker exec -w /etc/caddy $PS caddy reload ; fi
+

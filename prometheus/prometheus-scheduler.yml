@@ -1,0 +1,117 @@
+global:
+  scrape_interval:     30s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 30s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  scrape_timeout:      20s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+    - targets: ['localhost:9090']
+
+  - job_name: 'ci3'
+    static_configs:
+    - targets: ['172.18.0.1:9091']
+
+  - job_name: 'ci4'
+    static_configs:
+    - targets: ['ci4.ocamllabs.io:9100']
+
+  - job_name: 'scheduler'
+    static_configs:
+    - targets: ['scheduler:9090']
+
+  # Builder agent metrics
+
+{% for builder in groups['ubuntubuilders'] %}
+  - job_name: '{{ builder | regex_replace("\..*", "")}}'
+    metrics_path: /pool/{{ hostvars[builder]['builder_pool']}}/worker/{{ builder }}/metrics
+    static_configs:
+    - targets: ['scheduler:9090']
+
+{% endfor %}
+
+  # Solver agent metrics
+
+{% for solver in groups['solvers'] %}
+{% for n in range(1, 1 + hostvars[solver]['instances']) %}
+  - job_name: '{{ solver | regex_replace("\..*", "")}}-{{ n }}-solver'
+    metrics_path: /pool/{{ hostvars[solver]['solver_pool'] }}/worker/{{ solver }}-{{ n }}/metrics
+    static_configs:
+    - targets: ['scheduler:9090']
+
+{% endfor %}
+{% endfor %}
+
+  # Hosts
+
+{% for builder in groups['ubuntubuilders'] %}
+  - job_name: '{{ builder | regex_replace("\..*", "")}}-host'
+    metrics_path: /pool/{{ hostvars[builder]['builder_pool']}}/worker/{{ builder }}/host-metrics
+    static_configs:
+    - targets: ['scheduler:9090']
+
+{% endfor %}
+
+  # Clarke Emissions Monitoring
+
+{% for builder in groups['ubuntubuilders'] %}
+{% if hostvars[builder]['country'] is defined %}
+  - job_name: '{{ builder | regex_replace("\..*", "")}}-clarke'
+    metrics_path: /pool/{{ hostvars[builder]['builder_pool']}}/worker/{{ builder }}/clarke
+    static_configs:
+    - targets: ['scheduler:9090']
+
+{% endif %}
+{% endfor %}
+
+  # Windows
+
+{% for builder in '01', '02', '03', '04', '05', '06' %}
+  - job_name: win2022-{{ builder }}
+    metrics_path: /pool/windows-x86_64/worker/win2022-{{ builder }}/metrics
+    static_configs:
+    - targets: ['scheduler:9090']
+
+{% endfor %}
+
+{% for builder in range(1, 5) %}
+  - job_name: ltsc2022-{{ builder }}
+    metrics_path: /pool/windows-x86_64/worker/ltsc2022-{{ builder }}/metrics
+    static_configs:
+    - targets: ['scheduler:9090']
+
+{% endfor %}
+
+{% for builder in range(1, 5) %}
+  - job_name: win2019-{{ builder }}
+    metrics_path: /pool/windows-1809-x86_64/worker/ltsc2019-{{ builder }}/metrics
+    static_configs:
+    - targets: ['scheduler:9090']
+
+{% endfor %}
+
+  # Mac
+
+{% for builder in '01', '02', '03', '04' %}
+  - job_name: i7-worker-{{ builder }}
+    metrics_path: /pool/macos-x86_64/worker/i7-worker-{{ builder }}/metrics
+    static_configs:
+    - targets: ['scheduler:9090']
+
+  - job_name: m1-worker-{{ builder }}
+    metrics_path: /pool/macos-arm64/worker/m1-worker-{{ builder }}/metrics
+    static_configs:
+    - targets: ['scheduler:9090']
+
+{% endfor %}
+
+  # FreeBSD
+
+{% for builder in 'summer', 'spring' %}
+  - job_name: {{ builder }}
+    metrics_path: /pool/freebsd-x86_64/worker/{{ builder }}/metrics
+    static_configs:
+    - targets: ['scheduler:9090']
+
+{% endfor %}
+
