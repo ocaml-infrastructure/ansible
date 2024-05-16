@@ -38,4 +38,9 @@
    (vars /run/secrets/watch.ocaml.org.yml)
    (deps (cron-scripts/docker-prune))
   )
+  (
+   (name deploy.ci.dev.yml)
+   (vars /run/secrets/deploy.ci.dev.yml)
+   (deps (caddy/deploy.ci.dev cron-scripts/docker-prune roles/docker/tasks/main.yml roles/deployer-key/tasks/main.yml roles/deployer-key/files/id_rsa.pub))
+  )
 )))

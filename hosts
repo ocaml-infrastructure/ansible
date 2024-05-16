@@ -6,6 +6,7 @@ watch.ocaml.org
 v3b.ocaml.org
 v3c.ocaml.org
 docs.ci.ocaml.org ansible_host=c2-1.equinix.ci.dev
+deploy.ci.dev
 
 [ubuntubuilders]
 # Dell PowerEdge R720: 16C 256G

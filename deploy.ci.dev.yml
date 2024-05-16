@@ -1,19 +1,19 @@
 ---
 
-- hosts: deploy.ci.ocaml.org
+- hosts: deploy.ci.dev
   name: Set up Docker
   roles:
     #    - docker
     - deployer-key
 
-- hosts: deploy.ci.ocaml.org
+- hosts: deploy.ci.dev
   name: Set up SwarmKit
   tasks:
     - docker_swarm:
         listen_addr: "127.0.0.1:2377"
         advertise_addr: "127.0.0.1:2377"
 
-- hosts: deploy.ci.ocaml.org
+- hosts: deploy.ci.dev
   name: Install ocurrent-deployer
   tasks:
     - name: copy Docker secrets
@@ -22,85 +22,89 @@
         data: "{{ lookup('vars', item) | b64encode }}"
         data_is_b64: true
       loop:
-        - deployer-github-key
-        - deployer-github-oauth
-        - deployer-slack
-        - deployer-ssh-key
-        - deployer-submission-cap
-        - deployer-webhook-secret
         - ocurrentbuilder-password
+        - deployer-github-oauth
+        - deployer-github-key
+        - deployer-ssh-key
+        - deployer-slack
+        - deployer-webhook-secret
         - ocurrent-hub
+        - deployer-submission-cap
     - name: create caddy directory
       file:
         path: /etc/caddy
         state: directory
-    - name: configure caddy
+    - name: caddy machine wide configuration
       copy:
-        src: caddy/deploy.ci.ocaml.org
         dest: /etc/caddy/Caddyfile
+        content: |
+          import /etc/caddy/caddy.d/*
+    - name: create caddy.d directory
+      file:
+        path: /etc/caddy/caddy.d
+        state: directory
+    - name: configure caddy for deploy.ci.dev
+      copy:
+        src: caddy/deploy.ci.dev
+        dest: /etc/caddy/caddy.d/deploy.ci.dev
       notify:
         - restart caddy
     - name: install docker-prune script
       copy:
         src: cron-scripts/docker-prune
-        dest: /etc/cron.hourly/docker-prune
+        dest: /etc/cron.daily/docker-prune
         mode: u=rwx,g=rx,o=rx
     - name: set up deployer stack
       docker_stack:
-        name: infra
+        name: deployer
         prune: yes
         compose:
           - version: "3.7"
+            networks:
+              infra_default:
+                external: true
             services:
               deployer:
-                image: ocurrent/ci.ocamllabs.io-deployer:live-ocaml-org
-                command: -v --github-app-id 173198 --github-private-key-file /run/secrets/deployer-github-key --github-account-allowlist ocurrent,ocaml --slack /run/secrets/deployer-slack --confirm above-average --confirm-auto-release 120 --github-oauth /run/secrets/deployer-github-oauth --github-webhook-secret-file /run/secrets/deployer-webhook-secret --submission-service /run/secrets/deployer-submission-cap --staging-password-file /run/secrets/ocurrentbuilder-password --flavour ocaml
+                image: ocurrent/ci.ocamllabs.io-deployer:live-ci3
+                command: -v --github-app-id 85548 --github-private-key-file /run/secrets/deployer-github-key --github-account-allowlist ocurrent,mirage,ocaml-bench,ocaml,tarides --slack /run/secrets/deployer-slack --confirm above-average --confirm-auto-release 120 --github-oauth /run/secrets/deployer-github-oauth --github-webhook-secret-file /run/secrets/deployer-webhook-secret --submission-service /run/secrets/deployer-submission-cap --staging-password-file /run/secrets/ocurrentbuilder-password --flavour tarides
                 volumes:
                   - 'deployer-data:/var/lib/ocurrent'
                   - '/var/run/docker.sock:/var/run/docker.sock'
                 secrets:
-                  - ocurrentbuilder-password # DONE Copied from ci3
-                  - deployer-github-oauth   # DONE
-                  - deployer-github-key # DONE
+                  - ocurrentbuilder-password
+                  - deployer-github-oauth
+                  - deployer-github-key
                   - source: 'deployer-ssh-key'
                     mode: 0400
                   - deployer-slack
-                  - deployer-webhook-secret # DONE
-                  - deployer-submission-cap # DONE Copied from ci3
-                  - ocurrent-hub # DONE Copied from ci3 - Pushing final images to Docker Hub
+                  - deployer-submission-cap
+                  - deployer-webhook-secret
+                  - 'ocurrent-hub'
                 sysctls:
                   - 'net.ipv4.tcp_keepalive_time=60'
-              caddy:
-                image: caddy
-                ports:
-                  - 80:80
-                  - 443:443
-                volumes:
-                  - /etc/caddy:/etc/caddy:ro
-                  - caddy_data:/data
-                  - caddy_config:/config
+                networks:
+                  - infra_default
             volumes:
               deployer-data:
-              caddy_data:
-              caddy_config:
             secrets:
               ocurrentbuilder-password: # Used by workers to push to staging area on Docker Hub
                 external: true
-              deployer-github-oauth:    # Control access to the web UI
+              deployer-github-oauth:           # Control access to the web UI
                 external: true
               deployer-github-key:  # To authenticate to GitHub as an app
                 external: true
               deployer-ssh-key:         # For deploying over ssh to remote machines
                 external: true
-              deployer-slack:           # Posting status updates to Slack
+              deployer-slack:      # Posting status updates to Slack
                 external: true
               deployer-webhook-secret:  # Validating GitHub webhooks
                 external: true
               ocurrent-hub:             # Pushing final images to Docker Hub
                 external: true
-              deployer-submission-cap:  # Cluster submission capability
+              deployer-submission-cap:
                 external: true
   handlers:
     - name: restart caddy
       shell:
         cmd: PS=$(docker ps --filter=name=infra_caddy -q) && if [ -n "$PS" ] ; then docker exec -w /etc/caddy $PS caddy reload ; fi
+

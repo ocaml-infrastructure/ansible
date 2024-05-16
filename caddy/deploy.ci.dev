@@ -1,0 +1,7 @@
+deploy.ci3.ocamllabs.io {
+	redir https://deploy.ci.dev{uri} permanent
+}
+
+deploy.ci.dev {
+	reverse_proxy deployer:8080
+}
