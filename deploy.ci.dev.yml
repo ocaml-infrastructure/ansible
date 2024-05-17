@@ -32,19 +32,18 @@
         - deployer-submission-cap
     - name: create caddy directory
       file:
-        path: /etc/caddy
+        path: "{{ item }}"
         state: directory
+      loop:
+        - /etc/caddy
+        - /etc/caddy/caddy.d
     - name: caddy machine wide configuration
       copy:
         dest: /etc/caddy/Caddyfile
         content: |
           import /etc/caddy/caddy.d/*
-    - name: create caddy.d directory
-      file:
-        path: /etc/caddy/caddy.d
-        state: directory
     - name: configure caddy for deploy.ci.dev
-      copy:
+      template:
         src: caddy/deploy.ci.dev
         dest: /etc/caddy/caddy.d/deploy.ci.dev
       notify:
