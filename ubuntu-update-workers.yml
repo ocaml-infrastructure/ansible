@@ -1,10 +1,13 @@
 ---
 
 - hosts: ubuntubuilders
+  name: ping
+  tasks:
+    - ping:
+
+- hosts: ubuntubuilders
   name: Install Ubunutu updates
   serial: 1
-  ignore_unreachable: true
-  gather_facts: true
   roles:
     - ubuntu
 
