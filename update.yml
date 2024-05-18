@@ -1,9 +1,13 @@
 ---
 
-- hosts: all
-  name: Apt update
+- hosts: ubuntubuilders
+  name: ping
   tasks:
-    - name: Run the equivalent of "apt-get update" as a separate step
-      apt:
-        update_cache: yes
+    - ping:
+
+- hosts: ubuntubuilders
+  name: Install Ubunutu updates
+  serial: 1
+  roles:
+    - test
 

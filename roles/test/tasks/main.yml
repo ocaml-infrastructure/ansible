@@ -1,0 +1,9 @@
+
+- name: call uptime
+  shell: uptime
+  register: result
+
+- name: print result
+  debug:
+    var: result
+
