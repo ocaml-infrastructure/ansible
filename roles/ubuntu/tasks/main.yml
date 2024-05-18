@@ -55,3 +55,4 @@
 - name: unpause worker
   delegate_to: localhost
   command: ocluster-admin --connect /run/secrets/admin.cap unpause --auto-create {{builder_pool}} {{inventory_hostname}}
+  when: paused is undefined

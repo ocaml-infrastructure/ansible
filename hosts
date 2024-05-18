@@ -9,6 +9,8 @@ docs.ci.ocaml.org ansible_host=c2-1.equinix.ci.dev
 deploy.ci.dev
 scheduler.ci.dev
 x86-bm-d1.sw.ocaml.org
+c2-1.equinix.ci.dev
+c2-2.equinix.ci.dev
 
 [ubuntubuilders]
 # Avantek Mt Jade
@@ -23,18 +25,15 @@ okypous.caelum.ci.dev builder_pool=linux-arm64 capacity=40 docker_device=/dev/nv
 s390x-worker-01.marist.ci.dev builder_pool=linux-s390x capacity=4 store_device=/dev/dasdb1
 s390x-worker-02.marist.ci.dev builder_pool=linux-s390x capacity=2 store_device=/dev/dasdb1
 # Dell PowerEdge R630: 36C 512G
-phoebe.caelum.ci.dev builder_pool=linux-x86_64 capacity=42 country=gb
-laodoke.caelum.ci.dev builder_pool=linux-x86_64 capacity=24 store_device=/dev/nvme0n1 country=gb
-toxis.caelum.ci.dev builder_pool=linux-x86_64 capacity=24 store_device=/dev/nvme0n1 country=gb
-clete.caelum.ci.dev builder_pool=linux-x86_64 capacity=32 store_device=/dev/nvme0n1 country=gb
-# Dell PowerEdge R6415: 24C 64G
-c2-1.equinix.ci.dev builder_pool=linux-x86_64 capacity=20 docker_device=/dev/sdc obuilder_device=/dev/sdd country=us
-c2-2.equinix.ci.dev builder_pool=linux-x86_64 capacity=20 docker_device=/dev/sdc obuilder_device=/dev/sdd country=us
+phoebe.caelum.ci.dev builder_pool=linux-x86_64 capacity=42 country=gb paused=true
+laodoke.caelum.ci.dev builder_pool=linux-x86_64 capacity=24 store_device=/dev/nvme0n1 country=gb paused=true
+toxis.caelum.ci.dev builder_pool=linux-x86_64 capacity=24 store_device=/dev/nvme0n1 country=gb paused=true
+clete.caelum.ci.dev builder_pool=linux-x86_64 capacity=32 store_device=/dev/nvme0n1 country=gb paused=true
 # Dell PowerEdge R6525: 128C 1024G
 asteria.caelum.ci.dev builder_pool=linux-x86_64 capacity=64 docker_device=/dev/nvme0n1 obuilder_device=/dev/nvme1n1 country=gb
 doris.caelum.ci.dev builder_pool=linux-x86_64 capacity=64 docker_device=/dev/nvme0n1 obuilder_device=/dev/nvme1n1 country=gb
-iphito.caelum.ci.dev builder_pool=linux-x86_64 capacity=64 docker_device=/dev/nvme0n1 obuilder_device=/dev/nvme1n1 country=gb
-marpe.caelum.ci.dev builder_pool=linux-x86_64 capacity=64 docker_device=/dev/nvme0n1 obuilder_device=/dev/nvme1n1 country=gb
+iphito.caelum.ci.dev builder_pool=linux-x86_64 capacity=64 docker_device=/dev/nvme0n1 obuilder_device=/dev/nvme1n1 country=gb paused=true
+marpe.caelum.ci.dev builder_pool=linux-x86_64 capacity=64 docker_device=/dev/nvme0n1 obuilder_device=/dev/nvme1n1 country=gb paused=true
 # Dell PowerEdge R720: 16C 256G
 x86-bm-c1.sw.ocaml.org builder_pool=linux-x86_64 capacity=10 country=fr
 x86-bm-c2.sw.ocaml.org builder_pool=linux-x86_64 capacity=10 country=fr
