@@ -66,14 +66,6 @@ scrape_configs:
 
   # Windows
 
-{% for builder in '01', '02', '03', '04', '05', '06' %}
-  - job_name: win2022-{{ builder }}
-    metrics_path: /pool/windows-x86_64/worker/win2022-{{ builder }}/metrics
-    static_configs:
-    - targets: ['scheduler:9090']
-
-{% endfor %}
-
 {% for builder in range(1, 5) %}
   - job_name: ltsc2022-{{ builder }}
     metrics_path: /pool/windows-x86_64/worker/ltsc2022-{{ builder }}/metrics
@@ -83,7 +75,7 @@ scrape_configs:
 {% endfor %}
 
 {% for builder in range(1, 5) %}
-  - job_name: win2019-{{ builder }}
+  - job_name: ltsc2019-{{ builder }}
     metrics_path: /pool/windows-1809-x86_64/worker/ltsc2019-{{ builder }}/metrics
     static_configs:
     - targets: ['scheduler:9090']
