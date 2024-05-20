@@ -1,0 +1,98 @@
+---
+
+- hosts: images.ci.ocaml.org
+  name: Set up Docker
+  roles:
+    #    - docker
+    - deployer-key
+
+- hosts: images.ci.ocaml.org
+  name: Set up SwarmKit
+  tasks:
+    - docker_swarm:
+        listen_addr: "127.0.0.1:2377"
+        advertise_addr: "127.0.0.1:2377"
+
+- hosts: images.ci.ocaml.org
+  name: Install base-image builder
+  tasks:
+    - name: copy Docker secrets
+      docker_secret:
+        name: "{{ item }}"
+        data: "{{ lookup('vars', item) | b64encode }}"
+        data_is_b64: true
+      loop:
+        - ocurrent-hub
+        - ocurrentbuilder-password
+        - base-builder-slack
+        - base-builder-oauth
+        - base-builder-submission-cap
+    - name: create caddy directory
+      file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - /etc/caddy
+        - /etc/caddy/caddy.d
+    - name: caddy machine wide configuration
+      copy:
+        dest: /etc/caddy/Caddyfile
+        content: |
+          import /etc/caddy/caddy.d/*
+    - name: configure caddy for images.ci.ocaml.org
+      template:
+        src: caddy/images.ci.ocaml.org
+        dest: /etc/caddy/caddy.d/images.ci.ocaml.org
+      notify:
+        - restart caddy
+    - name: set up base-image builder stack
+      docker_stack:
+        name: base-images
+        prune: yes
+        compose:
+          - version: "3.7"
+            networks:
+              infra_default:
+                external: true
+            services:
+              builder:
+                image: ocurrent/base-images:live
+                command: --confirm above-average --confirm-auto-release 120 --verbose --slack /run/secrets/base-builder-slack --capnp-address=images.ci.ocaml.org:8101 --github-oauth /run/secrets/base-builder-oauth --submission-service /run/secrets/base-builder-submission-cap --staging-password-file /run/secrets/ocurrentbuilder-password
+                init: true
+                ports:
+                  - '8101:9000'
+                environment:
+                  DOCKER_BUILDKIT: 0        # See https://github.com/moby/buildkit/issues/1105
+                  DEPLOYMENT: 1
+                volumes:
+                  - 'data:/var/lib/ocurrent'
+                  - 'capnp-secrets:/capnp-secrets'
+                secrets:
+                  - 'ocurrent-hub'
+                  - 'ocurrentbuilder-password'
+                  - 'base-builder-submission-cap'
+                  - 'base-builder-oauth'
+                  - 'base-builder-slack'
+                sysctls:
+                  - 'net.ipv4.tcp_keepalive_time=60'
+                networks:
+                  - infra_default
+            volumes:
+              data:
+              capnp-secrets:
+            secrets:
+              ocurrent-hub:             # Pushing final images to Docker Hub
+                external: true
+              base-builder-slack:       # Posting status reports to Slack
+                external: true
+              base-builder-oauth:       # Control access to the web UI
+                external: true
+              ocurrentbuilder-password: # Used by workers to push to staging area on Docker Hub
+                external: true
+              base-builder-submission-cap:  # Submit jobs to cluster
+                external: true
+  handlers:
+    - name: restart caddy
+      shell:
+        cmd: PS=$(docker ps --filter=name=infra_caddy -q) && if [ -n "$PS" ] ; then docker exec -w /etc/caddy $PS caddy reload ; fi
+

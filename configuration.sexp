@@ -48,4 +48,9 @@
    (vars /run/secrets/scheduler.ci.dev.yml)
    (deps (caddy/scheduler.ci.dev cron-scripts/clear-log cron-scripts/docker-prune roles/docker/tasks/main.yml roles/deployer-key/tasks/main.yml roles/deployer-key/files/id_rsa.pub))
   )
+  (
+   (name images.ci.ocaml.org.yml)
+   (vars /run/secrets/images.ci.ocaml.org.yml)
+   (deps (caddy/images.ci.ocaml.org cron-scripts/clear-log cron-scripts/docker-prune roles/docker/tasks/main.yml roles/deployer-key/tasks/main.yml roles/deployer-key/files/id_rsa.pub))
+  )
 )))

@@ -8,6 +8,7 @@ v3c.ocaml.org
 docs.ci.ocaml.org ansible_host=c2-1.equinix.ci.dev
 deploy.ci.dev
 scheduler.ci.dev
+images.ci.ocaml.org
 x86-bm-d1.sw.ocaml.org
 c2-1.equinix.ci.dev
 c2-2.equinix.ci.dev
