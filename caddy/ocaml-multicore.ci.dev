@@ -1,0 +1,19 @@
+multicore.ci.ocamllabs.io {
+	redir https://ocaml-multicore.ci.dev{uri} permanent
+}
+
+ocaml-multicore.ci.dev {
+	reverse_proxy multicore-ci-web:8090
+}
+
+multicore.ci.ocamllabs.io:8100 {
+	redir https://ocaml-multicore.ci.dev:8100{uri} permanent
+}
+
+ocaml-multicore.ci.dev:8100 {
+	reverse_proxy multicore-ci:8080
+}
+
+ocaml-multicoretests.ci.dev:8100 {
+	reverse_proxy multicoretests-ci:8080
+}

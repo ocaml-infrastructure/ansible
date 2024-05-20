@@ -1,0 +1,136 @@
+---
+
+- hosts: ocaml-multicore.ci.dev
+  name: Configure ci4 controller host
+  tasks:
+    - name: create caddy directory
+      file:
+        path: /etc/caddy
+        state: directory
+    - name: configure Caddy
+      copy:
+        src: caddy/ocaml-multicore.ci.dev
+        dest: /etc/caddy/Caddyfile
+      notify:
+        - restart caddy
+    - name: copy Docker secrets
+      docker_secret:
+        name: "{{ item }}"
+        data: "{{ lookup('vars', item) | b64encode }}"
+        data_is_b64: true
+      loop:
+        - "multicore-ci-github-key" # multicore-ci GitHub private key
+        - "multicore-ci-oauth" # multicore-ci GitHub OAuth secret in JSON format
+        - "multicore-webhook-secret" # GitHub webhook secret
+        - "multicore-ci-submission-cap" # multicore-ci submission secret
+        - "multicoretests-ci-github-key" # multicoretests-ci GitHub private key
+        - "multicoretests-ci-oauth" # multicoretests-ci GitHub OAuth secret in JSON format
+        - "multicoretests-ci-submission-cap" # multicoretests-ci submission secret
+        - "multicoretests-webhook-secret" # GitHub webhook secret
+        - "multicore-solver-cap" # solver service submission cap to allow jobs to be submitted to ci3 scheduler solver pool by multicore ci
+    - name: set up ci4 stack
+      docker_stack:
+        name: infra
+        prune: yes
+        compose:
+          - version: "3.7"
+            volumes:
+              multicore-ci-data:
+              multicoretests-ci-data:
+              capnp-secrets:
+              capnp-tests-secrets:
+              caddy_data:
+                external: true
+              caddy_config:
+            secrets:
+              multicore-ci-github-key:
+                external: true
+              multicore-ci-submission-cap:
+                external: true
+              multicore-ci-oauth:
+                external: true
+              multicore-webhook-secret:
+                external: true
+              multicoretests-ci-oauth:
+                external: true
+              multicoretests-ci-github-key:
+                external: true
+              multicoretests-ci-submission-cap:
+                external: true
+              multicoretests-webhook-secret:
+                external: true
+              multicore-solver-cap:
+                external: true
+            services:
+              caddy:
+                image: caddy
+                ports:
+                  - 80:80
+                  - 443:443
+                  - 8100:8100
+                volumes:
+                  - /etc/caddy:/etc/caddy:ro
+                  - caddy_data:/data
+                  - caddy_config:/config
+              multicore-ci:
+                image: ocurrent/multicore-ci:live
+                command: --github-app-id 113285 --github-private-key-file /run/secrets/multicore-ci-github-key --github-account-allowlist "ocurrent,ocaml-multicore" --confirm above-average --confirm-auto-release 120  --capnp-address=tcp:multicore.ci.ocamllabs.io:9000 --github-oauth /run/secrets/multicore-ci-oauth --submission-service /run/secrets/multicore-ci-submission-cap --github-webhook-secret-file /run/secrets/multicore-webhook-secret --solver-service /run/secrets/multicore-solver-cap
+                ports:
+                  - '9000:9000'
+                environment:
+                  - "CI_TARGET=multicore"
+                  - "CI_PROFILE=production"
+                volumes:
+                  - 'multicore-ci-data:/var/lib/ocurrent'
+                  - 'capnp-secrets:/capnp-secrets'
+                  - '/var/run/docker.sock:/var/run/docker.sock' # TODO: use cluster instead
+                secrets:
+                  - 'multicore-ci-oauth'
+                  - 'multicore-ci-github-key'
+                  - 'multicore-ci-submission-cap'
+                  - 'multicore-webhook-secret'
+                  - 'multicore-solver-cap'
+                sysctls:
+                  - 'net.ipv4.tcp_keepalive_time=60'
+              multicore-ci-web:
+                image: ocurrent/multicore-ci-web:live
+                command: --backend /capnp-secrets/ocaml-ci-admin.cap    # Could do with being renamed
+                volumes:
+                  - 'capnp-secrets:/capnp-secrets:ro'
+                sysctls:
+                  - 'net.ipv4.tcp_keepalive_time=60'
+              multicoretests-ci:
+                image: ocurrent/multicoretests-ci:live
+                command: >
+                  --github-app-id 337178
+                  --github-private-key-file /run/secrets/multicoretests-ci-github-key
+                  --github-oauth /run/secrets/multicoretests-ci-oauth
+                  --github-webhook-secret-file /run/secrets/multicoretests-webhook-secret
+                  --confirm above-average
+                  --confirm-auto-release 120
+                  --capnp-listen-address=tcp:0.0.0.0:9000
+                  --submission-service /run/secrets/multicoretests-ci-submission-cap
+                  --verbosity info
+                  --github-account-allowlist 'ocaml-multicore,benmandrew,mtelvers,tmcgilchrist'
+                environment:
+                  - "CI_PROFILE=production"
+                  - "DOCKER_BUILDKIT=1"
+                  - "PROGRESS_NO_TRUNC=1"
+                ports:
+                  - '8102:9000'
+                volumes:
+                  - 'multicoretests-ci-data:/var/lib/ocurrent'
+                  - '/var/run/docker.sock:/var/run/docker.sock'
+                  - 'capnp-tests-secrets:/capnp-secrets'
+                secrets:
+                  - 'multicoretests-ci-oauth'
+                  - 'multicoretests-ci-github-key'
+                  - 'multicoretests-ci-submission-cap'
+                  - 'multicoretests-webhook-secret'
+                sysctls:
+                  - 'net.ipv4.tcp_keepalive_time=60'
+  handlers:
+    - name: restart caddy
+      shell:
+        cmd: PS=$(docker ps --filter=label=com.docker.swarm.service.name=infra_caddy -q) && if [ -n "$PS" ] ; then docker exec -w /etc/caddy $PS caddy reload ; fi
+
