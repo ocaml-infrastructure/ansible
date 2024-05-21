@@ -60,6 +60,8 @@
                   - caddy_config:/config
               opam-health-check:
                 image: ocurrent/opam-health-check:live
+                deploy:
+                  endpoint_mode: dnsrr
                 command: --connect /run/secrets/opam-health-check-cap /data/main
                 volumes:
                   - 'data:/data'
@@ -68,6 +70,8 @@
                   - opam-health-check-cap
               opam-health-check-freebsd:
                 image: ocurrent/opam-health-check:live
+                deploy:
+                  endpoint_mode: dnsrr
                 command: --connect /run/secrets/opam-health-check-cap /data/freebsd
                 volumes:
                   - 'data:/data'
