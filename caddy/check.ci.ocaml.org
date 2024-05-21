@@ -1,0 +1,24 @@
+check.ocamllabs.io {
+	redir https://check.ci.ocaml.org{uri} permanent
+}
+
+check.ci.ocaml.org {
+	@paths {
+		path /metrics /host/metrics
+	}
+	basicauth @paths {
+		prometheus {{ prometheus_password }}
+	}
+	handle /host/metrics {
+		uri strip_prefix /host
+		reverse_proxy {{ docker_gateway }}:9090
+	}
+	reverse_proxy opam-health-check:8080
+}
+
+freebsd.check.ci.dev {
+	basicauth /metrics {
+		prometheus {{ prometheus_password }}
+	}
+	reverse_proxy opam-health-check-freebsd:8080
+}

@@ -1,0 +1,25 @@
+- name: install APT package for Prometheus Node Exporter
+  apt:
+    name:
+      - prometheus-node-exporter
+    install_recommends: no
+
+- name: Query Docker bridge network
+  shell: docker network inspect bridge -f '{{ '{{ range .IPAM.Config }}{{ .Gateway }}{{ end }}' }}'
+  register: inspect
+
+- name: Set fact for docker bridge gateway
+  set_fact:
+    docker_gateway: "{{ inspect.stdout }}"
+
+- name: configure Prometheus node exporter
+  template:
+    src: prometheus-node-exporter
+    dest: /etc/default/prometheus-node-exporter
+
+- name: start systemd service
+  systemd:
+    name: prometheus-node-exporter
+    daemon_reload: true
+    enabled: true
+    state: restarted
