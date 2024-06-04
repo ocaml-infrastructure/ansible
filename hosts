@@ -17,8 +17,8 @@ check.ci.ocaml.org
 
 [ubuntubuilders]
 # Avantek Mt Jade
-arm64-jade-1.equinix.ci.dev builder_pool=linux-arm64 capacity=1 obuilder_device=/dev/nvme1n1
-arm64-jade-2.equinix.ci.dev builder_pool=linux-arm64 capacity=1 obuilder_device=/dev/nvme1n1
+arm64-jade-1.equinix.ci.dev builder_pool=linux-arm64 capacity=1 obuilder_device=/dev/nvme1n1 paused=true
+arm64-jade-2.equinix.ci.dev builder_pool=linux-arm64 capacity=1 obuilder_device=/dev/nvme1n1 paused=true
 # Avantek Mt Snow
 ainia.caelum.ci.dev builder_pool=linux-arm64 capacity=40 docker_device=/dev/nvme1n1 obuilder_device=/dev/nvme2n1
 kydoime.caelum.ci.dev builder_pool=linux-arm64 capacity=40 docker_device=/dev/nvme1n1 obuilder_device=/dev/nvme2n1
