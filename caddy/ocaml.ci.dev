@@ -1,0 +1,48 @@
+ci.ocamllabs.io:8100 {
+	redir https://ocaml.ci.dev:8100{uri} permanent
+}
+
+ocaml.ci.dev:8100 {
+	handle /webhooks/* {
+		reverse_proxy ci:8080
+	}
+	handle {
+		reverse_proxy ci:8080
+	}
+}
+
+ci.ocamllabs.io:8200 {
+	redir https://ocaml.ci.dev:8200{uri} permanent
+}
+
+ocaml.ci.dev:8200 {
+	handle /webhooks/* {
+		reverse_proxy gitlab:8080
+	}
+	handle {
+		reverse_proxy gitlab:8080
+	}
+}
+
+ci.ocamllabs.io {
+	redir https://ocaml.ci.dev{uri} permanent
+}
+
+ocaml.ci.dev {
+	reverse_proxy web:8090
+}
+
+status.ci.ocamllabs.io {
+	redir https://status.ocaml.ci.dev{uri} permanent
+}
+
+status.ocaml.ci.dev {
+	reverse_proxy grafana:3000
+}
+
+prometheus.ci.dev {
+        basicauth bcrypt {
+		prometheus {{ prometheus_password }}
+        }
+        reverse_proxy prometheus:9090
+}

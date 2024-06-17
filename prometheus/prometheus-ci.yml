@@ -1,0 +1,245 @@
+# my global config
+global:
+  scrape_interval:     30s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 30s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  # scrape_timeout is set to the global default (10s).
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets:
+      # - alertmanager:9093
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: 'prometheus'
+    static_configs:
+    - targets: ['localhost:9090']
+
+  - job_name: 'ocaml-ci'
+    static_configs:
+    - targets: ['ci:8080']
+ 
+  - job_name: 'ocaml-ci-gitlab'
+    static_configs:
+    - targets: ['gitlab:8080']
+
+  - job_name: 'ocaml-ci-web'
+    static_configs:
+    - targets: ['web:9090']
+
+  - job_name: 'opam-repo-ci'
+    scheme: https
+    basic_auth:
+      username: prometheus
+      password: {{ prometheus_password_plain }}
+    static_configs:
+    - targets: ['opam-repo.ci.ocaml.org']
+
+  - job_name: 'opam.ci.ocaml.org'
+    scheme: https
+    basic_auth:
+      username: prometheus
+      password: {{ prometheus_password_plain }}
+    metrics_path: '/host/metrics'
+    static_configs:
+    - targets: ['opam-repo.ci.ocaml.org']
+
+  - job_name: 'winter'
+    basic_auth:
+      username: sandmark
+      password: s4ndm4rk
+    scheme: 'https'
+    tls_config:
+       insecure_skip_verify: true
+    static_configs:
+    - targets: ['winter.ocamllabs.io:9100']
+
+  - job_name: 'navajo'
+    basic_auth:
+      username: sandmark
+      password: s4ndm4rk
+    scheme: 'https'
+    tls_config:
+       insecure_skip_verify: true
+    static_configs:
+    - targets: ['navajo.ocamllabs.io:9100']
+
+  - job_name: 'docs.ci'
+    scheme: https
+    basic_auth:
+      username: prometheus
+      password: {{ prometheus_password_plain }}
+    static_configs:
+    - targets: ['docs.ci.ocaml.org']
+
+  - job_name: 'docs.ci.ocaml.org'
+    scheme: https
+    basic_auth:
+      username: prometheus
+      password: {{ prometheus_password_plain }}
+    metrics_path: '/host/metrics'
+    static_configs:
+    - targets: ['docs.ci.ocaml.org']
+
+  - job_name: 'staging.docs.ci'
+    scheme: https
+    basic_auth:
+      username: prometheus
+      password: {{ prometheus_password_plain }}
+    static_configs:
+    - targets: ['staging.docs.ci.ocamllabs.io']
+
+  - job_name: 'staging.docs.ci.ocamllabs.io'
+    scheme: https
+    basic_auth:
+      username: prometheus
+      password: {{ prometheus_password_plain }}
+    metrics_path: '/host/metrics'
+    static_configs:
+    - targets: ['staging.docs.ci.ocamllabs.io']
+
+  - job_name: 'images.ci'
+    scheme: https
+    basic_auth:
+      username: prometheus
+      password: {{ prometheus_password_plain }}
+    static_configs:
+    - targets: ['images.ci.ocaml.org']
+
+  - job_name: 'images.ci.ocaml.org'
+    scheme: https
+    basic_auth:
+      username: prometheus
+      password: {{ prometheus_password_plain }}
+    metrics_path: '/host/metrics'
+    static_configs:
+    - targets: ['images.ci.ocaml.org']
+
+  - job_name: 'check.ci'
+    scheme: https
+    basic_auth:
+      username: prometheus
+      password: {{ prometheus_password_plain }}
+    static_configs:
+    - targets: ['check.ci.ocaml.org']
+
+  - job_name: 'freebsd.check.ci'
+    scheme: https
+    basic_auth:
+      username: prometheus
+      password: {{ prometheus_password_plain }}
+    static_configs:
+    - targets: ['freebsd.check.ci.dev']
+
+  - job_name: 'check.ci.ocaml.org'
+    scheme: https
+    basic_auth:
+      username: prometheus
+      password: {{ prometheus_password_plain }}
+    metrics_path: '/host/metrics'
+    static_configs:
+    - targets: ['check.ci.ocaml.org']
+
+  - job_name: 'hopi-host'
+    scheme: https
+    basic_auth:
+      username: prometheus
+      password: {{ prometheus_password_plain }}
+    metrics_path: '/host/metrics'
+    static_configs:
+    - targets: ['hopi.caelum.ci.dev']
+
+  - job_name: 'hopi-libvirt'
+    scheme: https
+    basic_auth:
+      username: prometheus
+      password: {{ prometheus_password_plain }}
+    metrics_path: '/libvirt/metrics'
+    static_configs:
+    - targets: ['hopi.caelum.ci.dev']
+
+  - job_name: federate
+    scheme: https
+    basic_auth:
+      username: prometheus
+      password: {{ prometheus_password_plain }}
+    honor_labels: true
+    metrics_path: '/federate'
+    params:
+      match[]:
+        - '{__name__=~"ocluster_.+"}'
+        - '{__name__=~"capnp_.+"}'
+        - '{__name__=~"ocaml_.+"}'
+        - '{__name__=~"node_load.+"}'
+        - '{__name__=~"node_filesystem_.+"}'
+        - '{__name__=~"node_memory_.+"}'
+        - '{__name__=~"node_network_.+"}'
+        - '{__name__=~"node_disk_.+"}'
+        - '{__name__=~"windows_.+"}'
+        - '{__name__=~"Clarke_.+"}'
+    static_configs:
+      - targets:
+        - scheduler.ci.dev
+
+  - job_name: "autumn-host"
+    scheme: https
+    basic_auth:
+      username: admin
+      password: benchmark!tooling!tarides
+    metrics_path: '_host/metrics'
+    static_configs:
+      - targets: ["bench.ci.dev"]
+
+  - job_name: "bench.ci.dev"
+    scheme: https
+    metrics_path: '_pipeline/metrics'
+    basic_auth:
+      username: admin
+      password: benchmark!tooling!tarides
+    static_configs:
+      - targets: ["bench.ci.dev"]
+
+  - job_name: "bench.ci.dev-ocluster"
+    scheme: https
+    metrics_path: '_ocluster/metrics'
+    basic_auth:
+      username: admin
+      password: benchmark!tooling!tarides
+    static_configs:
+      - targets: ["bench.ci.dev"]
+
+  - job_name: "bench-autumn-worker"
+    scheme: https
+    basic_auth:
+      username: admin
+      password: benchmark!tooling!tarides
+    metrics_path: '_ocluster/pool/autumn/worker/development-worker/metrics'
+    static_configs:
+      - targets: ["bench.ci.dev"]
+
+  - job_name: "bench-fermat-worker"
+    scheme: https
+    basic_auth:
+      username: admin
+      password: benchmark!tooling!tarides
+    metrics_path: '_ocluster/pool/fermat/worker/fermat/metrics'
+    static_configs:
+      - targets: ["bench.ci.dev"]
+
+  - job_name: "fermat-host"
+    scheme: https
+    basic_auth:
+      username: admin
+      password: benchmark!tooling!tarides
+    metrics_path: '_ocluster/pool/fermat/worker/fermat/host-metrics'
+    static_configs:
+      - targets: ["bench.ci.dev"]

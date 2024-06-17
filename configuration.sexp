@@ -114,4 +114,14 @@
      roles/deployer-key/files/id_rsa.pub)
    )
   )
+  (
+   (name ocaml.ci.dev.yml)
+   (vars /run/secrets/ocaml.ci.dev.yml)
+   (deps (
+     caddy/ocaml.ci.dev
+     prometheus/prometheus-ci.yml
+     roles/docker/tasks/main.yml
+     roles/deployer-key/tasks/main.yml
+     roles/deployer-key/files/id_rsa.pub))
+  )
 )))

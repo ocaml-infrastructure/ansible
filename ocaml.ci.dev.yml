@@ -1,0 +1,126 @@
+---
+
+- hosts: ocaml.ci.dev
+  name: Set up Docker
+  roles:
+    #    - docker
+    - deployer-key
+
+- hosts: ocaml.ci.dev
+  name: Set up SwarmKit
+  tasks:
+    - docker_swarm:
+        listen_addr: "127.0.0.1:2377"
+        advertise_addr: "127.0.0.1:2377"
+
+- hosts: ocaml.ci.dev
+  tasks:
+    - name: copy Docker secrets
+      docker_secret:
+        name: "{{ item }}"
+        data: "{{ lookup('vars', item) | b64encode }}"
+        data_is_b64: true
+      loop:
+        - ocaml-ci-github-key
+        - ocaml-ci-oauth
+        - ocaml-ci-submission-cap
+        - ocaml-ci-webhook-secret
+        - ocaml-ci-gitlab-oauth
+        - ocaml-ci-gitlab-token
+        - ocaml-ci-gitlab-webhook-secret
+        - ocaml-ci-solver-cap
+    - name: create caddy directory
+      file:
+        path: /etc/caddy
+        state: directory
+    - name: configure caddy
+      template:
+        src: caddy/ocaml.ci.dev
+        dest: /etc/caddy/Caddyfile
+      notify:
+        - restart caddy
+    - name: install clear log script
+      template:
+        src: cron-scripts/clear-log
+        dest: /etc/cron.hourly/clear-log
+        mode: u=rwx,g=rx,o=rx
+      vars:
+        volumes:
+          - ocaml-ci_data
+    - name: create prometheus directory
+      file:
+        path: /etc/prometheus
+        state: directory
+    - name: Configure Prometheus Monitoring
+      template:
+        src: prometheus/prometheus-ci.yml
+        dest: /etc/prometheus/prometheus.yml
+      notify:
+        - restart prometheus
+    - name: Set up infrastructure stack
+      docker_stack:
+        name: infra
+        prune: yes
+        compose:
+          - version: "3.7"
+            services:
+              caddy:
+                image: caddy
+                deploy:
+                  mode: global
+                ports:
+                  - target: 80
+                    published: 80
+                    protocol: tcp
+                    mode: host
+                  - target: 443
+                    published: 443
+                    protocol: tcp
+                    mode: host
+                  - target: 8100
+                    published: 8100
+                    protocol: tcp
+                    mode: host
+                  - target: 8200
+                    published: 8200
+                    protocol: tcp
+                    mode: host
+                networks:
+                  ocaml-ci_default: {}
+                  default: {}
+                volumes:
+                  - /etc/caddy:/etc/caddy:ro
+                  - caddy_data:/data
+                  - caddy_config:/config
+              prometheus:
+                image: prom/prometheus
+                command: --storage.tsdb.retention.time=30w --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus --web.console.libraries=/usr/share/prometheus/console_libraries --web.console.templates=/usr/share/prometheus/consoles
+                volumes:
+                  - "prometheus-data:/prometheus"
+                  - "/etc/prometheus:/etc/prometheus:ro"
+                networks:
+                  ocaml-ci_default: {}
+                  default: {}
+              grafana:
+                image: grafana/grafana
+                volumes:
+                  - "grafana-storage:/var/lib/grafana"
+                environment:
+                  - "GF_SERVER_ROOT_URL=http://status.ocaml.ci.dev"
+            volumes:
+              prometheus-data:
+              grafana-storage:
+              caddy_data:
+                external: true
+              caddy_config:
+            networks:
+              ocaml-ci_default:
+                external: true
+  handlers:
+    - name: restart prometheus
+      shell:
+        cmd: PS=$(docker ps --filter=label=com.docker.swarm.service.name=infra_prometheus -q) && if [ -n "$PS" ] ; then docker exec $PS pkill -HUP prometheus ; fi
+    - name: restart caddy
+      shell:
+        cmd: PS=$(docker ps --filter=label=com.docker.swarm.service.name=infra_caddy -q) && if [ -n "$PS" ] ; then docker exec -w /etc/caddy $PS caddy reload ; fi
+
