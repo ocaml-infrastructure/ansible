@@ -243,3 +243,21 @@ scrape_configs:
     metrics_path: '_ocluster/pool/fermat/worker/fermat/host-metrics'
     static_configs:
       - targets: ["bench.ci.dev"]
+
+  - job_name: "bench-pascal-worker"
+    scheme: https
+    basic_auth:
+      username: admin
+      password: benchmark!tooling!tarides
+    metrics_path: '_ocluster/pool/pascal/worker/pascal/metrics'
+    static_configs:
+      - targets: ["bench.ci.dev"]
+
+  - job_name: "pascal-host"
+    scheme: https
+    basic_auth:
+      username: admin
+      password: benchmark!tooling!tarides
+    metrics_path: '_ocluster/pool/pascal/worker/pascal/host-metrics'
+    static_configs:
+      - targets: ["bench.ci.dev"]
