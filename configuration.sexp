@@ -124,4 +124,10 @@
      roles/deployer-key/tasks/main.yml
      roles/deployer-key/files/id_rsa.pub))
   )
+  (
+   (name opam.ci.ocaml.org.yml)
+   (vars /run/secrets/opam.ci.ocaml.org.yml)
+   (deps (
+     caddy/opam.ci.ocaml.org))
+  )
 )))
