@@ -1,0 +1,32 @@
+- name: pull clarke image
+  community.general.docker_image:
+    name: ocurrent/clarke:live
+    source: pull
+    force_source: true
+
+- name: install ipmitool
+  become: yes
+  apt:
+    name:
+      - ipmitool
+    install_recommends: no
+    cache_valid_time: 3600
+
+- name: extract clarke binary
+  shell:
+    chdir: "/usr/local/bin"
+    cmd: "docker run --rm --entrypoint /bin/cat ocurrent/clarke:live /usr/local/bin/clarke > clarke.new && chmod a+x clarke.new && clarke.new --help && mv clarke.new clarke"
+
+- name: create systemd service file
+  template:
+    src: clarke.service
+    dest: /etc/systemd/system/clarke.service
+  vars:
+    period: 10 # 10s interval for monitoring power usage
+
+- name: start systemd service
+  systemd:
+    name: clarke.service
+    daemon_reload: true
+    enabled: true
+    state: started

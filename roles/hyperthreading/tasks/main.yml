@@ -1,0 +1,17 @@
+---
+
+- name: Run lscpu
+  shell:
+    cmd: lscpu
+  register: lscpu
+
+- name: Read /sys/devices/system/cpu/smt/active
+  shell:
+    cmd: cat /sys/devices/system/cpu/smt/active
+  register: smt
+
+- name: Report Hyperthreading
+  fail:
+    msg: Hyperthreading capable processor but hyperthreading is disabled
+  when: smt.stdout == "0" and lscpu.stdout is search("\sht\s")
+
