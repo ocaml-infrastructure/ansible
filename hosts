@@ -17,6 +17,10 @@ check.ci.ocaml.org
 ocaml.ci.dev
 opam.ci.ocaml.org
 
+[all:vars]
+state_dir=/var/cache/obuilder/ocluster
+prune_threshold=30
+
 [ubuntubuilders]
 # Avantek Mt Jade
 arm64-jade-1.equinix.ci.dev builder_pool=linux-arm64 capacity=1 obuilder_device=/dev/nvme1n1 paused=true

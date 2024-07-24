@@ -1,0 +1,11 @@
+[Unit]
+Description=Clarke monitoring service
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/clarke monitor --period={{ period }} --country={{ country }} --machine={{ ansible_host }} --listen-prometheus=9090 --meter=ipmi
+Restart=always
+RestartSec=60
+
+[Install]
+WantedBy=multi-user.target

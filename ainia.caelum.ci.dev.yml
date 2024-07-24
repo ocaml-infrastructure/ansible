@@ -1,0 +1,11 @@
+---
+
+- hosts: ainia.caelum.ci.dev
+  name: Install OCluster Worker
+  roles:
+    - role: hyperthreading
+    - role: docker
+    - role: clarke
+      when: country is defined
+    - role: worker
+      additional_metrics: "{{ '--additional-metrics=clarke:http://localhost:9090/metrics' if country is defined else '' }}"

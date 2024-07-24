@@ -1,0 +1,98 @@
+- name: removed unwanted services
+  apt:
+    name:
+      - exim4-daemon-light
+      - mlocate
+      - locate
+      - snapd
+      - apport    # messes up coredumps for afl-fuzz
+    autoremove: true
+    purge: true
+    state: absent
+
+- name: ensure host doesn't look like a container
+  file:
+    path: /.dockerenv
+    state: absent
+
+- name: configure node-exporter
+  copy:
+    content: |
+      ARGS="--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|run|var/cache/obuilder/.+|var/lib/docker/.+)($|/)"
+    dest: /etc/default/prometheus-node-exporter
+
+- name: install dependencies
+  apt:
+    name:
+      - libev4
+      - git
+      - libsqlite3-0
+      - ca-certificates
+      - netbase
+      - prometheus-node-exporter
+
+- name: configure sysctl to avoid timeouts
+  ansible.posix.sysctl:
+    name: net.ipv4.tcp_keepalive_time
+    value: '60'
+    reload: yes
+
+- name: create /etc/ocluster
+  file:
+    path: /etc/ocluster
+    state: directory
+
+- name: copy pool capability
+  copy:
+    content: "{{ lookup('vars', builder_pool) }}"
+    dest: /etc/ocluster/pool.cap
+    mode: '0400'
+
+- name: pull worker image
+  community.general.docker_image:
+    name: ocurrent/ocluster-worker:live
+    source: pull
+    force_source: true
+
+- name: extract worker agent binary
+  shell:
+    chdir: "/usr/local/bin"
+    cmd: "docker run --rm --entrypoint /bin/cat ocurrent/ocluster-worker:live /usr/local/bin/ocluster-worker > ocluster-worker.new && chmod a+x ocluster-worker.new && ocluster-worker.new --help && mv ocluster-worker.new ocluster-worker"
+
+- name: extra configuration options
+  set_fact:
+    extras:
+      - 'LimitSTACK=infinity'
+  when: ansible_architecture == "ppc64le"
+
+- name: create systemd service file
+  template:
+    src: ocluster-worker.service
+    dest: /etc/systemd/system/ocluster-worker.service
+  register: ocluster_worker
+
+- name: pause worker
+  delegate_to: localhost
+  command: ocluster-admin --connect /run/secrets/admin.cap pause --auto-create --wait {{ builder_pool }} {{ inventory_hostname }}
+  when: ocluster_worker.changed
+
+- name: stop systemd service
+  systemd:
+    name: ocluster-worker.service
+    daemon_reload: true
+    enabled: true
+    state: stopped
+  when: ocluster_worker.changed
+
+- name: start systemd service
+  systemd:
+    name: ocluster-worker.service
+    daemon_reload: true
+    enabled: true
+    state: started
+
+- name: unpause worker
+  delegate_to: localhost
+  command: ocluster-admin --connect /run/secrets/admin.cap unpause --auto-create {{ builder_pool }} {{ inventory_hostname }}
+  when:
+    - paused is undefined
