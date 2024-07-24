@@ -15,6 +15,7 @@ c2-2.equinix.ci.dev
 ocaml-multicore.ci.dev
 check.ci.ocaml.org
 ocaml.ci.dev
+opam.ci.ocaml.org
 
 [ubuntubuilders]
 # Avantek Mt Jade
