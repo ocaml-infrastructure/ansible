@@ -9,11 +9,6 @@
    (name update.yml)
   )
   (
-   (name ubuntu-update-workers.yml)
-   (validity 7)
-   (deps (roles/ubuntu/tasks/main.yml))
-  )
-  (
    (name deploy.ci.ocaml.org.yml)
    (vars /run/secrets/deploy.ci.ocaml.org.yml)
    (deps (
@@ -132,14 +127,5 @@
    (deps (
      caddy/opam.ci.ocaml.org))
   )
-  (
-   (name ainia.caelum.ci.dev.yml)
-   (vars /run/secrets/worker.yml)
-   (deps (
-     roles/hyperthreading/tasks/main.yml
-     roles/worker/tasks/main.yml
-     roles/worker/templates/ocluster-worker.service
-     roles/clarke/tasks/main.yml
-     roles/clarke/templates/clarke.service))
-  )
+  
 )))
