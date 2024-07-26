@@ -1,4 +1,6 @@
-((playbooks (
+(
+ (name OCaml)
+ (playbooks (
   (
    (name update-something-else.yml)
    (deps (roles/apt/tasks/main.yml))
