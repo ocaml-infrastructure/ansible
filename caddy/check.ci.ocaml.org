@@ -6,7 +6,7 @@ check.ci.ocaml.org {
 	@paths {
 		path /metrics /host/metrics
 	}
-	basicauth @paths {
+	basic_auth @paths {
 		prometheus {{ prometheus_password }}
 	}
 	handle /host/metrics {
@@ -17,7 +17,7 @@ check.ci.ocaml.org {
 }
 
 freebsd.check.ci.dev {
-	basicauth /metrics {
+	basic_auth /metrics {
 		prometheus {{ prometheus_password }}
 	}
 	reverse_proxy opam-health-check-freebsd:8080

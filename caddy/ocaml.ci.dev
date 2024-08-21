@@ -41,7 +41,7 @@ status.ocaml.ci.dev {
 }
 
 prometheus.ci.dev {
-        basicauth bcrypt {
+        basic_auth bcrypt {
 		prometheus {{ prometheus_password }}
         }
         reverse_proxy prometheus:9090
