@@ -36,6 +36,14 @@
         dest: /etc/caddy/Caddyfile
       notify:
         - restart caddy
+    - name: install clear log script
+      template:
+        src: cron-scripts/clear-log
+        dest: /etc/cron.hourly/clear-log
+        mode: u=rwx,g=rx,o=rx
+      vars:
+        volumes:
+          - opam-repo-ci_data
     - name: set up opam-repo-ci stack
       docker_stack:
         name: opam-repo-ci
