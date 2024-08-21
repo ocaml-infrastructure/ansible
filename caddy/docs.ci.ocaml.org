@@ -1,6 +1,6 @@
 docs.ci.ocaml.org {
 	handle /host/metrics {
-		basicauth bcrypt {
+		basic_auth bcrypt {
 			prometheus {{ prometheus_password }}
 		}
 		uri strip_prefix /host
