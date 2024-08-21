@@ -47,6 +47,11 @@
       vars:
         volumes:
           - ocaml-ci_data
+    - name: install docker-prune script
+      copy:
+        src: cron-scripts/docker-prune
+        dest: /etc/cron.daily/docker-prune
+        mode: u=rwx,g=rx,o=rx
     - name: create prometheus directory
       file:
         path: /etc/prometheus
