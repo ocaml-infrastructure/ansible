@@ -44,6 +44,11 @@
       vars:
         volumes:
           - opam-repo-ci_data
+    - name: install docker-prune script
+      copy:
+        src: cron-scripts/docker-prune
+        dest: /etc/cron.daily/docker-prune
+        mode: u=rwx,g=rx,o=rx
     - name: set up opam-repo-ci stack
       docker_stack:
         name: opam-repo-ci
