@@ -18,7 +18,9 @@
 - name: pause worker
   delegate_to: localhost
   command: ocluster-admin --connect /run/secrets/admin.cap pause --auto-create --wait {{builder_pool}} {{inventory_hostname}}
-  when: file_reboot_required.stat.exists
+  when:
+    - file_reboot_required.stat.exists
+    - builder_pool is defined
 
 - name: pre-upgrade reboot
   ansible.builtin.reboot:
@@ -45,7 +47,9 @@
 - name: pause worker
   delegate_to: localhost
   command: ocluster-admin --connect /run/secrets/admin.cap pause --auto-create --wait {{builder_pool}} {{inventory_hostname}}
-  when: file_reboot_required.stat.exists
+  when:
+    - file_reboot_required.stat.exists
+    - builder_pool is defined
 
 - name: reboot to 22.04
   ansible.builtin.reboot:
@@ -55,4 +59,6 @@
 - name: unpause worker
   delegate_to: localhost
   command: ocluster-admin --connect /run/secrets/admin.cap unpause --auto-create {{builder_pool}} {{inventory_hostname}}
-  when: paused is undefined
+  when:
+    - paused is undefined
+    - builder_pool is defined
