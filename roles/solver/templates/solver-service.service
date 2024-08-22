@@ -1,0 +1,14 @@
+[Unit]
+Description=Solver Service {{ item }}
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/solver-service run-cluster -c /etc/ocluster/solver.cap --name='{{ ansible_host }}-{{ item }}' --cache-dir=/var/cache/solver/{{ item }} --capacity={{ capacity }} --internal-workers={{ workers }} --verbosity=info
+Restart=always
+RestartSec=60
+LimitNOFILE=Infinity
+CPUSchedulingPolicy=rr
+CPUSchedulingPriority=20
+
+[Install]
+WantedBy=multi-user.target

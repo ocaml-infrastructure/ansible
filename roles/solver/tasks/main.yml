@@ -1,0 +1,74 @@
+- name: ensure host doesn't look like a container
+  file:
+    path: /.dockerenv
+    state: absent
+
+- name: install dependencies
+  apt:
+    name:
+      - libev4
+      - git
+      - libsqlite3-0
+      - ca-certificates
+      - netbase
+
+- name: configure sysctl to avoid timeouts
+  ansible.posix.sysctl:
+    name: net.ipv4.tcp_keepalive_time
+    value: '60'
+    reload: yes
+
+- name: create /var/cache/solver
+  file:
+    path: /var/cache/solver
+    state: directory
+
+- name: Mount a tmpfs volume
+  ansible.posix.mount:
+    path: /var/cache/solver
+    src: tmpfs
+    fstype: tmpfs
+    state: mounted
+    opts: noatime,size=8g
+
+- name: create /etc/ocluster
+  file:
+    path: /etc/ocluster
+    state: directory
+
+- name: copy pool capability
+  copy:
+    content: "{{ lookup('vars', solver_pool) }}"
+    dest: /etc/ocluster/solver.cap
+    mode: '0400'
+
+- name: docker image
+  set_fact: docker_image=ocurrent/solver-service:live
+  when: solver_pool == "solver"
+
+- name: docker image
+  set_fact: docker_image=ocurrent/solver-service:staging
+  when: solver_pool == "solver-test"
+
+- name: pull docker image {{ docker_image }}
+  community.general.docker_image:
+    name: "{{ docker_image }}"
+    source: pull
+    force_source: true
+
+- name: extract binary
+  shell:
+    chdir: "/usr/local/bin"
+    cmd: "docker run --rm --entrypoint /bin/cat {{ docker_image }} /usr/local/bin/solver-service > solver-service.new && chmod a+x solver-service.new && solver-service.new --help && mv solver-service.new solver-service"
+
+- name: create systemd service file
+  template:
+    src: solver-service.service
+    dest: /etc/systemd/system/solver-service-{{ item }}.service
+
+- name: start systemd service
+  systemd:
+    name: solver-service-{{ item }}.service
+    daemon_reload: true
+    enabled: true
+    state: restarted
