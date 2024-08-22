@@ -1,6 +1,6 @@
 ---
 
-- hosts: ainia.caelum.ci.dev
+- hosts: ubuntubuilders
   name: Install OCluster Worker
   roles:
     - role: hyperthreading

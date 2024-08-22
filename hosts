@@ -23,13 +23,15 @@ prune_threshold=30
 
 [ubuntubuilders]
 # Avantek Mt Jade
-arm64-jade-1.equinix.ci.dev builder_pool=linux-arm64 capacity=1 obuilder_device=/dev/nvme1n1 paused=true
 arm64-jade-2.equinix.ci.dev builder_pool=linux-arm64 capacity=1 obuilder_device=/dev/nvme1n1 paused=true
 # Avantek Mt Snow
-ainia.caelum.ci.dev builder_pool=linux-arm64 capacity=40 docker_device=/dev/nvme1n1 obuilder_device=/dev/nvme2n1
-kydoime.caelum.ci.dev builder_pool=linux-arm64 capacity=40 docker_device=/dev/nvme1n1 obuilder_device=/dev/nvme2n1
-molpadia.caelum.ci.dev builder_pool=linux-arm64 capacity=40 docker_device=/dev/nvme1n1 obuilder_device=/dev/nvme2n1
-okypous.caelum.ci.dev builder_pool=linux-arm64 capacity=40 docker_device=/dev/nvme1n1 obuilder_device=/dev/nvme2n1
+ainia.caelum.ci.dev builder_pool=linux-arm64 capacity=20 docker_device=/dev/nvme1n1 obuilder_device=/dev/nvme2n1
+kydoime.caelum.ci.dev builder_pool=linux-arm64 capacity=20 docker_device=/dev/nvme1n1 obuilder_device=/dev/nvme2n1
+molpadia.caelum.ci.dev builder_pool=linux-arm64 capacity=20 docker_device=/dev/nvme1n1 obuilder_device=/dev/nvme2n1
+okypous.caelum.ci.dev builder_pool=linux-arm64 capacity=20 docker_device=/dev/nvme1n1 obuilder_device=/dev/nvme2n1
+# OSUOSL ARM64 VMs
+ocaml-1.osuosl.ci.dev builder_pool=linux-arm64 capacity=2
+ocaml-2.osuosl.ci.dev builder_pool=linux-arm64 capacity=2
 # IBM S390
 s390x-worker-01.marist.ci.dev builder_pool=linux-s390x capacity=4 store_device=/dev/dasdb1
 s390x-worker-02.marist.ci.dev builder_pool=linux-s390x capacity=2 store_device=/dev/dasdb1
