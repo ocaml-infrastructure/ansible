@@ -1,0 +1,45 @@
+- name: Check for Scaleway key deployment
+  shell: scw-fetch-ssh-keys
+  register: scw
+  ignore_errors: true
+
+- name: add key
+  ansible.posix.authorized_key:
+    user: root
+    state: present
+    comment: '{{ item }}'
+    key: '{{ item }}'
+  loop: "{{ add }}"
+  when: scw.rc > 0
+
+- name: add key
+  ansible.posix.authorized_key:
+    user: root
+    state: present
+    comment: '{{ item }}'
+    key: '{{ item }}'
+    path: '~/.ssh/instance_keys'
+  loop: "{{ add }}"
+  when: scw.rc == 0
+
+- name: delete key
+  ansible.posix.authorized_key:
+    user: root
+    state: absent
+    key: '{{ item }}'
+  loop: "{{ remove }}"
+  when: scw.rc > 0
+
+- name: delete key
+  ansible.posix.authorized_key:
+    user: root
+    state: absent
+    key: '{{ item }}'
+    path: '~/.ssh/instance_keys'
+  loop: "{{ remove }}"
+  when: scw.rc == 0
+
+- name: Import instance_keys to authorized_keys
+  shell:
+    cmd: scw-fetch-ssh-keys --upgrade
+  when: scw.rc == 0
