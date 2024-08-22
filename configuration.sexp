@@ -29,6 +29,15 @@
    )
   )
   (
+   (name staging.docs.ci.ocamllabs.io.yml)
+   (vars /run/secrets/staging.docs.ci.ocamllabs.io.yml)
+   (deps (
+     caddy/staging.docs.ci.ocamllabs.io
+     roles/deployer-key/tasks/main.yml
+     roles/deployer-key/files/id_rsa.pub)
+   )
+  )
+  (
    (name staging.ocaml.org.yml)
    (deps (
      caddy/staging.ocaml.org
