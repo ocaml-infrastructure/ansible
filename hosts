@@ -83,6 +83,8 @@ riscv-bm-a3.sw.ocaml.org builder_pool=linux-riscv64 capacity=1
 riscv-bm-a4.sw.ocaml.org builder_pool=linux-riscv64 capacity=1
 
 [solvers]
-# Avantek Mt Jade
-arm64-jade-1.equinix.ci.dev solver_pool=solver capacity=1 workers=1 instances=48
-arm64-jade-2.equinix.ci.dev solver_pool=solver capacity=1 workers=1 instances=48
+arm64-jade-2.equinix.ci.dev solver_pool=solver capacity=2 workers=56 instances=2
+ainia.caelum.ci.dev solver_pool=solver capacity=2 workers=56 instances=1
+kydoime.caelum.ci.dev solver_pool=solver capacity=2 workers=56 instances=1
+molpadia.caelum.ci.dev solver_pool=solver capacity=2 workers=56 instances=1
+okypous.caelum.ci.dev solver_pool=solver capacity=2 workers=56 instances=1

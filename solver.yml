@@ -1,0 +1,9 @@
+---
+
+- hosts: solvers
+  tasks:
+  - name: Configure solver workers
+    include_role:
+      name: solver
+    loop: "{{ query('sequence', 'start=1 end=' + (instances|string)) }}"
+
