@@ -1,13 +1,13 @@
 staging.docs.ci.ocamllabs.io {
         handle /host/metrics {
-                basicauth bcrypt {
+                basic_auth bcrypt {
 			prometheus {{ prometheus_password }}
                 } 
                 uri strip_prefix /host
-                reverse_proxy 172.18.0.1:9090
+                reverse_proxy 172.17.0.1:9090
         }       
         handle /metrics {
-                basicauth bcrypt {
+                basic_auth bcrypt {
 			prometheus {{ prometheus_password }}
                 } 
                 reverse_proxy docs-ci:8080
