@@ -1,8 +1,0 @@
-
-- name: configure for LTS releases
-  copy:
-    dest: /etc/update-manager/release-upgrades
-    content: |
-      [DEFAULT]
-      Prompt=lts
-
