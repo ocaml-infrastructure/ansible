@@ -2,13 +2,6 @@
  (name OCaml)
  (playbooks (
   (
-   (name update-something-else.yml)
-   (deps (roles/apt/tasks/main.yml))
-  )
-  (
-   (name update.yml)
-  )
-  (
    (name deploy.ci.ocaml.org.yml)
    (vars /run/secrets/deploy.ci.ocaml.org.yml)
    (deps (
