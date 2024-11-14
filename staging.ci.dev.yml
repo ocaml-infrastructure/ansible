@@ -1,5 +1,4 @@
 ---
-
 - hosts: staging.ci.dev
   name: Set up Docker
   roles:
@@ -16,7 +15,6 @@
 - hosts: staging.ci.dev
   name: Deploy staging site for OCaml.org
   tasks:
-
     - name: create varnish directory
       file:
         path: /etc/varnish
@@ -26,32 +24,38 @@
         dest: /etc/varnish/default.vcl
         content: |
           vcl 4.1;
-          
+
           import proxy;
           import directors;
-          
+
+          # For dynamic backends
+          # See https://github.com/nigoroll/libvmod-dynamic/blob/master/src/vmod_dynamic.vcc
+          import dynamic;
+
+          # Probe for updates to backend server
+          probe www_probe {
+            .interval = 5s;
+            .timeout = 1s;
+            .window = 5;
+            .threshold = 3;
+            .initial = 3;
+          }
+
           probe health {
               .url = "/";
           }
-          
-          backend www1 {
-              .host = "www1";
-              .port = "8080";
-              .probe = health;
-          }
-          
-          backend www2 {
-              .host = "www2";
-              .port = "8080";
-              .probe = health;
-          }
-          
+
           sub vcl_init {
+              new ocaml_org = dynamic.director(
+                port = "8080",
+                probe = www_probe,
+                ttl = 5m,
+              );
               new vdir = directors.round_robin();
-              vdir.add_backend(www1);
-              vdir.add_backend(www2);
+              vdir.add_backend(ocaml_org.backend("www1"));
+              vdir.add_backend(ocaml_org.backend("www2"));
           }
-          
+
           sub vcl_recv {
               if ((req.http.X-Forwarded-Proto && req.http.X-Forwarded-Proto != "https") || 
                   (req.http.Scheme && req.http.Scheme != "https")) {
@@ -60,7 +64,7 @@
                   return (synth(750));
               }
           }
-          
+
           sub vcl_synth {
               if (resp.status == 750) {
                   set resp.status = 301;
@@ -83,7 +87,6 @@
         compose:
           - version: "3.7"
             services:
-
               hitch:
                 deploy:
                   mode: global
@@ -117,10 +120,9 @@
               www1:
                 image: ocurrent/v3.ocaml.org-server:staging
                 sysctls:
-                  - 'net.ipv4.tcp_keepalive_time=60'
+                  - "net.ipv4.tcp_keepalive_time=60"
 
               www2:
                 image: ocurrent/v3.ocaml.org-server:staging
                 sysctls:
-                  - 'net.ipv4.tcp_keepalive_time=60'
-
+                  - "net.ipv4.tcp_keepalive_time=60"
